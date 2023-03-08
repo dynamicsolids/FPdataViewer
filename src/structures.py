@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from itertools import chain
 
 
+# TODO: Move to immutable (frozen) datastructures
+# TODO: Consider using numpy arrays
+
 @dataclass(frozen=True, slots=True)
 class Vector:
     x: float

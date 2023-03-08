@@ -14,7 +14,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("filename")
 
 
+# TODO: Restructure project to have top-level scripts
+# TODO: Rename to mlab_cockpit?
+
+
 def view(mlab: MLAB, configuration_header: MLABConfigurationHeader, configurations: list[MLABConfiguration]):
+    # TODO: Format graphs
+    # TODO: Combine into single window
+
     atom_repr = ", ".join([f"{name} ({number})" for name, number in configuration_header.number_of_atoms_per_type])
     energies = [conf.energy for conf in configurations]
     mean_energy = np.mean(energies)
@@ -71,6 +78,9 @@ def view(mlab: MLAB, configuration_header: MLABConfigurationHeader, configuratio
 
 
 if __name__ == "__main__":
+    # TODO: Implement loading from (current) folder
+    # TODO: Implement (non-)grouping option
+
     args = parser.parse_args()
 
     mlab = read_mlab(args.filename)

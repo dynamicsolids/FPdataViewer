@@ -22,6 +22,7 @@ def read_blocks(file: TextIO) -> Generator[list[str], None, None]:
 
 
 # <editor-fold desc="Parsers">
+# TODO: Implement error messages (& consolidate?)
 def parse_string(data: list[str]) -> str:
     return data[0]
 
@@ -69,6 +70,7 @@ def parse_vector_list(data: list[str]) -> Generator[Vector, None, None]:
 
 
 def read_mlab(path: str) -> MLAB:
+    # TODO: Remove asserts & implement error messages
     mlab = MLAB()
 
     with open(path) as file:
@@ -131,6 +133,7 @@ def read_mlab(path: str) -> MLAB:
             assert(next(blocks) == ["Atom types and atom numbers"])
             conf_header.number_of_atoms_per_type = tuple(parse_string_int_columns(next(blocks)))
 
+            # TODO: Make CTIFOR field optional
             assert(next(blocks) == ["CTIFOR"])
             conf.CTIFOR = parse_float(next(blocks))
 
