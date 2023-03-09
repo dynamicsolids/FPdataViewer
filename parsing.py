@@ -1,10 +1,9 @@
 import re
 from collections.abc import Generator
-from dataclasses import dataclass
 from itertools import chain
 from typing import TextIO
 
-from src.structures import MLAB, MLABBasisSet, MLABConfiguration, Vector, Tensor, MLABConfigurationHeader
+from structures import MLAB, MLABBasisSet, MLABConfiguration, Vector, Tensor, MLABConfigurationHeader
 
 
 def read_blocks(file: TextIO) -> Generator[list[str], None, None]:
