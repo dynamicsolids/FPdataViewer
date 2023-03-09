@@ -8,14 +8,17 @@ from matplotlib import pyplot as plt
 from parsing import read_mlab
 from structures import MLAB, MLABConfiguration, MLABConfigurationHeader
 
-parser = argparse.ArgumentParser()
-parser.add_argument("path", nargs="?", default=os.getcwd())
+parser = argparse.ArgumentParser(description="reads ML_AB files and displays various statistics")
+parser.add_argument("path", nargs="?", default=os.getcwd(), metavar="file/dir",
+                    help="file to read - if directory is supplied, looks for ML_AB file - defaults to working directory")
+parser.add_argument("-s", "--separate", action="store_true",
+                    help="produces separate figure for each plot")
 
 
 # TODO: Restructure project to have top-level scripts
 
 
-def view(mlab: MLAB, configuration_header: MLABConfigurationHeader, configurations: list[MLABConfiguration]):
+def view(mlab: MLAB, configuration_header: MLABConfigurationHeader, configurations: list[MLABConfiguration], separate: bool):
     # TODO: Format graphs
     # TODO: Try different
     # TODO: Move to using style sheets?
@@ -38,8 +41,7 @@ def view(mlab: MLAB, configuration_header: MLABConfigurationHeader, configuratio
     print()
     print(f"Name:       {configuration_header.name}")
     print(f"Structures: {len(configurations)}")
-    print(f"Atoms:      {atom_repr}")
-    print(f"Total:      {configuration_header.number_of_atoms}")
+    print(f"Atoms:      {atom_repr}, {configuration_header.number_of_atoms} total")
     print()
     print(f"Mean energy: {mean_energy:.1f}")
     print(f"Std energy:  {std_energy:.2f}")
@@ -121,5 +123,7 @@ if __name__ == "__main__":
     for conf in mlab.configurations:
         groups[conf.header].append(conf)
 
+    print(f"Found {len(groups)} groups of similar structures")
+
     for header, confs in groups.items():
-        view(mlab, header, confs)
+        view(mlab, header, confs, args.separate)
