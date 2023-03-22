@@ -84,9 +84,6 @@ def _validate_basis_sets(mlab: MLAB) -> Generator[ValidationError, None, None]:
 
 
 def validate_mlab(mlab: MLAB) -> Generator[ValidationError, None, None]:
-    # TODO: Finish remaining validation steps
-    # TODO: Implement criticality
-
     yield from _validate_header(mlab)
 
     yield from _validate_atom_types(mlab)

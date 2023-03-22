@@ -3,9 +3,6 @@ from dataclasses import dataclass
 from itertools import chain
 
 
-# TODO: Move to immutable (frozen) datastructures
-# TODO: Consider using numpy arrays
-
 @dataclass(frozen=True, slots=True)
 class Vector:
     x: float
@@ -79,4 +76,11 @@ class MLAB:
 
     basis_sets: list[MLABBasisSet]
 
+    configurations: list[MLABConfiguration]
+
+
+@dataclass(slots=True)
+class MLABGroup:
+    mlab: MLAB
+    header: MLABConfigurationHeader
     configurations: list[MLABConfiguration]

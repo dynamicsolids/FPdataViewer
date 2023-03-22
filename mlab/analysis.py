@@ -4,8 +4,6 @@ from structures import MLABConfiguration, MLABConfigurationHeader, Vector
 
 
 def calculate_radial_histogram(header: MLABConfigurationHeader, configurations: list[MLABConfiguration], center: set[str], to: set[str], cutoff: float, bins: int) -> list[tuple[float, int]]:
-    # TODO: Implement (parallelized) RDF calculation
-
     hist = [0] * bins
     hist_bins = list([i * cutoff / bins for i in range(bins)])
     type_lookup = header.generate_type_lookup()
