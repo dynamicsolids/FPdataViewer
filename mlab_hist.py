@@ -52,16 +52,16 @@ class ForcesPlot(Plot):
         params = {"bins": 100,
                   "alpha": 0.7}
 
-        ax.hist([abs(force.x) for conf in self.group.configurations for force in conf.forces],
+        ax.hist([abs(force) for conf in self.group.configurations for force in conf.forces[:, 0]],
                 label="x", color="r",
                 **params)
-        ax.hist([abs(force.y) for conf in self.group.configurations for force in conf.forces],
+        ax.hist([abs(force) for conf in self.group.configurations for force in conf.forces[:, 1]],
                 label="y", color="b",
                 **params)
-        ax.hist([abs(force.z) for conf in self.group.configurations for force in conf.forces],
+        ax.hist([abs(force) for conf in self.group.configurations for force in conf.forces[:, 2]],
                 label="z", color="g",
                 **params)
-        ax.hist([force.get_length() for conf in self.group.configurations for force in conf.forces],
+        ax.hist([np.linalg.norm(force) for conf in self.group.configurations for force in conf.forces],
                 label="||.||", color="k",
                 **params)
 
@@ -79,13 +79,13 @@ class LatticePlot(Plot):
         params = {"bins": 100,
                   "alpha": 0.8}
 
-        ax.hist([conf.lattice_vectors[0].get_length() for conf in self.group.configurations],
+        ax.hist([np.linalg.norm(conf.lattice_vectors[0]) for conf in self.group.configurations],
                 label="a", color="r",
                 **params)
-        ax.hist([conf.lattice_vectors[1].get_length() for conf in self.group.configurations],
+        ax.hist([np.linalg.norm(conf.lattice_vectors[1]) for conf in self.group.configurations],
                 label="b", color="b",
                 **params)
-        ax.hist([conf.lattice_vectors[2].get_length() for conf in self.group.configurations],
+        ax.hist([np.linalg.norm(conf.lattice_vectors[2]) for conf in self.group.configurations],
                 label="c", color="g",
                 **params)
         ax.set_xlabel("Lattice vector length [ang]")
@@ -106,13 +106,13 @@ class SplitLatticePlot(Plot):
         params = {"bins": 100,
                   "alpha": 0.8}
 
-        ax1.hist([conf.lattice_vectors[0].get_length() for conf in self.group.configurations],
+        ax1.hist([np.linalg.norm(conf.lattice_vectors[0]) for conf in self.group.configurations],
                  label="a", color="r",
                  **params)
-        ax2.hist([conf.lattice_vectors[1].get_length() for conf in self.group.configurations],
+        ax2.hist([np.linalg.norm(conf.lattice_vectors[1]) for conf in self.group.configurations],
                  label="b", color="b",
                  **params)
-        ax3.hist([conf.lattice_vectors[2].get_length() for conf in self.group.configurations],
+        ax3.hist([np.linalg.norm(conf.lattice_vectors[2]) for conf in self.group.configurations],
                  label="c", color="g",
                  **params)
         ax3.set_xlabel("Lattice vector length [ang]")

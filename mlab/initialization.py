@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from mlab.parsing import read_mlab
+from mlab.parsing import MLABParser
 from mlab.structures import MLABGroup
 
 
@@ -81,7 +81,8 @@ def init(parser: argparse.ArgumentParser) -> tuple[list[MLABGroup], dict]:
     mlab_path = find_mlab_file(args.mlab_path)
 
     with open(mlab_path, "rt") as file:
-        mlab = read_mlab(file)
+        parser = MLABParser(file)
+        mlab = parser.read_mlab()
     # problems = list(validate_mlab(mlab))
 
     # Split MLAB file
@@ -92,4 +93,6 @@ def init(parser: argparse.ArgumentParser) -> tuple[list[MLABGroup], dict]:
 
     print(f"Found {len(groups)} group{'s' if len(groups) != 1 else ''} of similar structures")
 
-    return [MLABGroup(mlab, header, confs) for header, confs in groups.items()], config
+    return [MLABGroup(mlab=mlab,
+                      header=header,
+                      configurations=confs) for header, confs in groups.items()], config

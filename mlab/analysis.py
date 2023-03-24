@@ -1,6 +1,6 @@
 import math
 
-from structures import MLABConfiguration, MLABConfigurationHeader, Vector
+from structures_old import MLABConfiguration, MLABConfigurationHeader, Vector
 
 
 def calculate_radial_histogram(header: MLABConfigurationHeader, configurations: list[MLABConfiguration], center: set[str], to: set[str], cutoff: float, bins: int) -> list[tuple[float, int]]:

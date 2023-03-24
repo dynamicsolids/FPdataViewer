@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from structures import MLAB
+from structures_old import MLAB
 
 
 class ValidationError(Exception):

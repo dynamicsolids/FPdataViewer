@@ -1,7 +1,20 @@
+import math
 from dataclasses import dataclass
 from itertools import chain
 
-from numpy._typing import ArrayLike
+
+@dataclass(frozen=True, slots=True)
+class Vector:
+    x: float
+    y: float
+    z: float
+
+    def get_length(self):
+        return math.sqrt(self.x**2 + self.y**2 + self.z**2)
+
+    @staticmethod
+    def get_distance(a: "Vector", b: "Vector") -> float:
+        return math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2 + (a.z - b.z)**2)
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,13 +30,13 @@ class Tensor:
         return (self.xx + self.yy + self.zz) / 3
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(init=False, slots=True)
 class MLABBasisSet:
     name: str
-    indices: ArrayLike
+    indices: list[tuple[int, int]]
 
 
-@dataclass(frozen=True, slots=True, kw_only=True, unsafe_hash=True)
+@dataclass(init=False, slots=True, unsafe_hash=True)
 class MLABConfigurationHeader:
     name: str
     number_of_atom_types: int
@@ -35,21 +48,21 @@ class MLABConfigurationHeader:
         return tuple(chain.from_iterable(table))
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(init=False, slots=True)
 class MLABConfiguration:
     index: int
 
     header: MLABConfigurationHeader
 
-    ctifor: float | None
-    lattice_vectors: ArrayLike
-    positions: ArrayLike
+    CTIFOR: float | None
+    lattice_vectors: list[Vector]
+    positions: list[Vector]
     energy: float
-    forces: ArrayLike
+    forces: list[Vector]
     stress: Tensor
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(init=False, slots=True)
 class MLAB:
     number_of_configurations: int
     max_number_of_atom_types: int
@@ -66,7 +79,7 @@ class MLAB:
     configurations: list[MLABConfiguration]
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True)
 class MLABGroup:
     mlab: MLAB
     header: MLABConfigurationHeader
