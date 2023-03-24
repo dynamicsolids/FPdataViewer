@@ -65,13 +65,6 @@ class MLABParser:
 
         return res
 
-    def _peek_string(self) -> str:
-        pos = self._file.tell()
-        try:
-            return self._read_string()
-        finally:
-            self._file.seek(pos)
-
     def _read_int(self) -> int:
         return int(self._read_string())
 
@@ -133,6 +126,13 @@ class MLABParser:
     def _read_header(self, expected: str):
         if self._read_string() != expected:
             raise Exception()
+
+    def _read_optional_header(self, expected: str) -> bool:
+        pos = self._file.tell()
+        present = self._read_string() == expected
+        if not present:
+            self._file.seek(pos)
+        return present
 
     # </editor-fold>
 
@@ -203,8 +203,10 @@ class MLABParser:
                 header_obj = reference_header
                 header_pool[reference_header] = reference_header
 
-            self._read_header("CTIFOR")
-            ctifor = self._read_float()
+            if self._read_optional_header("CTIFOR"):
+                ctifor = self._read_float()
+            else:
+                ctifor = None
 
             self._read_header("Primitive lattice vectors (ang.)")
             lattice_vectors = self._read_vector_list(3)
