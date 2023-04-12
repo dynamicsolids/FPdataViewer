@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from itertools import chain
 
-from numpy._typing import ArrayLike
+from numpy.typing import ArrayLike
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,3 +71,14 @@ class MLABGroup:
     mlab: MLAB
     header: MLABConfigurationHeader
     configurations: list[MLABConfiguration]
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class MLABGroupAnalysis:
+    pass
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class MLABAnalysis:
+    hash: str
+    groups: list[MLABGroupAnalysis]

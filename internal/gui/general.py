@@ -1,20 +1,18 @@
-import argparse
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.gridspec import SubplotSpec
 
-from mlab.initialization import init, print_stats
-from mlab.structures import MLABGroup
+from internal.config import get_config
+from internal.structures import MLABGroup
 
 
 class Plot(ABC):
-    def __init__(self, fig: Figure, group: MLABGroup, config: dict):
+    def __init__(self, fig: Figure, group: MLABGroup):
         self.fig = fig
         self.group = group
-        self.config = config
 
     @abstractmethod
     def create_axes(self, spec: SubplotSpec):
@@ -30,7 +28,7 @@ class EnergyPlot(Plot):
         ax.set_xlabel("Energy [eV]")
         ax.get_yaxis().set_ticks([])
         ax.minorticks_on()
-        ax.grid(True)
+        ax.grid(visible=True)
 
 
 class StressPlot(Plot):
@@ -42,7 +40,7 @@ class StressPlot(Plot):
         ax.set_xlabel("Mechanical pressure [kbar]")
         ax.get_yaxis().set_ticks([])
         ax.minorticks_on()
-        ax.grid(True)
+        ax.grid(visible=True)
 
 
 class ForcesPlot(Plot):
@@ -69,7 +67,7 @@ class ForcesPlot(Plot):
         ax.get_yaxis().set_ticks([])
         ax.legend()
         ax.minorticks_on()
-        ax.grid(True)
+        ax.grid(visible=True)
 
 
 class LatticePlot(Plot):
@@ -92,7 +90,7 @@ class LatticePlot(Plot):
         ax.get_yaxis().set_ticks([])
         ax.minorticks_on()
         ax.legend()
-        ax.grid(True)
+        ax.grid(visible=True)
 
 
 class SplitLatticePlot(Plot):
@@ -124,36 +122,42 @@ class SplitLatticePlot(Plot):
         ax1.tick_params(labelbottom=False)
         ax2.tick_params(labelbottom=False)
 
-        ax1.grid(True)
-        ax2.grid(True)
-        ax3.grid(True)
+        ax1.grid(visible=True)
+        ax2.grid(visible=True)
+        ax3.grid(visible=True)
 
 
-def view(group: MLABGroup, config: dict):
+def display(group: MLABGroup):
     plots = [[EnergyPlot, ForcesPlot],
-             [StressPlot, SplitLatticePlot]]
+             [StressPlot, LatticePlot]]
 
-    if config["hist"]["separate"]:
+    if get_config()["separate"]:
         for _, plot in np.ndenumerate(np.array(plots)):
-            fig = plt.figure()
+            fig = plt.figure(num="General")
             grid = fig.add_gridspec(ncols=1, nrows=1)
 
-            plot(fig, group, config).create_axes(grid[0, 0])
+            plot(fig, group).create_axes(grid[0, 0])
     else:
-        fig = plt.figure(layout="tight")
+        fig = plt.figure(num="General", layout="tight")
         grid = fig.add_gridspec(ncols=2, nrows=2)
 
         for (i, j), plot in np.ndenumerate(np.array(plots)):
-            plot(fig, group, config).create_axes(grid[i, j])
-
-    plt.show()
+            plot(fig, group).create_axes(grid[i, j])
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="reads ML_AB files and displays various statistics")
+def display_general_info(group: MLABGroup):
+    atom_repr = ", ".join([f"{name} ({number})" for name, number in group.header.number_of_atoms_per_type])
+    energies = [conf.energy for conf in group.configurations]
+    mean_energy = np.mean(energies)
+    std_energy = np.std(energies)
 
-    gs, c = init(parser)
+    print()
+    print(f"###### {group.header.name} ######")
+    print(atom_repr)
+    print(f"Structures: {len(group.configurations)}")
+    print(f"Atoms: {group.header.number_of_atoms}")
+    print()
+    print(f"Energy: {mean_energy:.1f} eV \u00B1 {2 * std_energy:.2f} eV")
 
-    for g in gs:
-        print_stats(g, c)
-        view(g, c)
+    # TODO: Bounding box volume (average)
+    # TODO: Bounding box min. non-overlapping sphere radius (average), useful for RDF

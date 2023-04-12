@@ -3,9 +3,8 @@ from collections.abc import Iterator
 from typing import TextIO
 
 import numpy as np
-from numpy._typing import ArrayLike
-
-from mlab.structures import MLAB, MLABBasisSet, MLABConfiguration, Tensor, MLABConfigurationHeader
+from mlab.structures_old import MLAB, MLABBasisSet, MLABConfiguration, Tensor, MLABConfigurationHeader
+from numpy.typing import ArrayLike
 
 
 class MLABParser:
