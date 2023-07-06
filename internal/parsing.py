@@ -1,11 +1,12 @@
 import re
+from collections import defaultdict
 from collections.abc import Iterator
 from typing import TextIO
 
 import numpy as np
 from numpy.typing import ArrayLike
 
-from internal.structures import MLAB, MLABBasisSet, MLABConfiguration, Tensor, MLABConfigurationHeader
+from internal.structures import MLAB, MLABBasisSet, MLABConfiguration, StressTensor, MLABConfigurationHeader, MLABSection
 
 
 class MLABParser:
@@ -142,7 +143,7 @@ class MLABParser:
 
     # </editor-fold>
 
-    def read_mlab(self) -> MLAB:
+    def load(self) -> MLAB:
         self._read_header("1.0 Version")
 
         self._read_header("The number of configurations")
@@ -234,7 +235,7 @@ class MLABParser:
             xy, yz, zx = self._read_vector()
             self._throw_on_end_of_file = True
 
-            stress = Tensor(xx, yy, zz, xy, yz, zx)
+            stress = StressTensor(xx, yy, zz, xy, yz, zx)
 
             configurations.append(MLABConfiguration(index=index,
                                                     header=header_obj,
@@ -260,3 +261,15 @@ class MLABParser:
                     numbers_of_basis_sets=numbers_of_basis_sets,
                     basis_sets=basis_sets,
                     configurations=configurations)
+
+def load(file: TextIO) -> MLAB:
+    return MLABParser(file).load()
+
+
+def split(mlab: MLAB) -> list[MLABSection]:
+    sections = defaultdict(list)
+
+    for conf in mlab.configurations:
+        sections[conf.header].append(conf)
+
+    return [MLABSection(configurations=confs, source=mlab, common_header=header) for header, confs in sections.items()]

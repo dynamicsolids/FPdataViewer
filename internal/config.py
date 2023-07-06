@@ -1,14 +1,14 @@
 # DEFAULT CONFIG - DO NOT EDIT - IGNORED WHEN mlab_config.json PRESENT
 default_config = {
     "general": {
-        "bin_number": 100
+        "bins": 100
     },
     "rdf": {
-        "bin_number": 1000,
+        "bins": 1000,
         "structures": 0.1,
-        "r_min": 0.0,
+        "r_min": 1.0,
         "r_max": 10.0,
-        "pairs": ["any-any"]
+        "pairs": "same"
     }
 }
 

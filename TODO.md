@@ -1,10 +1,1 @@
-- Implement rdf
-- Implement desc
-- Finish parser
-  - Make CTIFOR optional
-- Finish validator
-- Overhaul data structures
-  - Start using numpy arrays?
-  - Completely immutable structures
-  - Flyweight structure headers
-- Use style sheets?
+Segfault in rdf?

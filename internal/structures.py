@@ -5,7 +5,7 @@ from numpy.typing import ArrayLike
 
 
 @dataclass(frozen=True, slots=True)
-class Tensor:
+class StressTensor:
     xx: float
     yy: float
     zz: float
@@ -31,7 +31,7 @@ class MLABConfigurationHeader:
     number_of_atoms_per_type: tuple[tuple[str, int], ...]
 
     def generate_type_lookup(self) -> tuple[str, ...]:
-        table = [[type] * number for type, number in self.number_of_atoms_per_type]
+        table = [[type] * amount for type, amount in self.number_of_atoms_per_type]
         return tuple(chain.from_iterable(table))
 
 
@@ -46,7 +46,26 @@ class MLABConfiguration:
     positions: ArrayLike
     energy: float
     forces: ArrayLike
-    stress: Tensor
+    stress: StressTensor
+
+    @property
+    def name(self) -> str:
+        return self.header.name
+
+    @property
+    def number_of_atom_types(self) -> int:
+        return self.header.number_of_atom_types
+
+    @property
+    def number_of_atoms(self) -> int:
+        return self.header.number_of_atoms
+
+    @property
+    def number_of_atoms_per_type(self) -> tuple[tuple[str, int], ...]:
+        return self.header.number_of_atoms_per_type
+
+    def generate_type_lookup(self) -> tuple[str, ...]:
+        return self.header.generate_type_lookup()
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -67,18 +86,33 @@ class MLAB:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class MLABGroup:
-    mlab: MLAB
-    header: MLABConfigurationHeader
+class MLABSection:
+    source: MLAB
+
     configurations: list[MLABConfiguration]
+    common_header: MLABConfigurationHeader
+
+    @property
+    def name(self) -> str:
+        return self.common_header.name
+
+    @property
+    def number_of_atom_types(self) -> int:
+        return self.common_header.number_of_atom_types
+
+    @property
+    def number_of_atoms(self) -> int:
+        return self.common_header.number_of_atoms
+
+    @property
+    def number_of_atoms_per_type(self) -> tuple[tuple[str, int], ...]:
+        return self.common_header.number_of_atoms_per_type
+
+    def generate_type_lookup(self) -> tuple[str, ...]:
+        return self.common_header.generate_type_lookup()
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class MLABGroupAnalysis:
-    pass
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class MLABAnalysis:
-    hash: str
-    groups: list[MLABGroupAnalysis]
+class MLABSectionStats:
+    rdfs: dict[str, tuple[ArrayLike, ArrayLike]]
+    descriptors: dict[str, ArrayLike]

@@ -1,16 +1,13 @@
 import argparse
 import json
 import os
-from collections import defaultdict
+import sys
 
-from matplotlib import pyplot as plt
+from rich.prompt import Confirm
 
+from internal import parsing, analysis
 from internal.config import default_config, set_config
-from internal.gui.general import display as display_general
-from internal.gui.general import display_general_info
-from internal.gui.rdf import display as display_rdf
-from internal.parsing import MLABParser
-from internal.structures import MLABGroup
+from internal.output import output_console
 
 
 def register_args() -> argparse.ArgumentParser:
@@ -20,11 +17,19 @@ def register_args() -> argparse.ArgumentParser:
     # subparsers.add_parser("rdf", help="radial distribution functions")
     # subparsers.add_parser("desc", help="SOAP descriptors")
 
-    parser.add_argument("mlab_path",
-                        nargs="?",
+    parser.add_argument("-i",
+                        "--input",
                         default=None,
+                        dest="mlab_path",
                         metavar="file",
                         help="file to read - if directory is supplied, looks for ML_AB file - defaults to working directory")
+
+    parser.add_argument("-o",
+                        "--output",
+                        choices=["matplotlib", "dash", "none"],
+                        default="matplotlib",
+                        dest="output",
+                        help="method used to display results")
 
     parser.add_argument("-c",
                         "--config",
@@ -33,24 +38,19 @@ def register_args() -> argparse.ArgumentParser:
                         metavar="file",
                         help="config file - will be created if it does not exist - defaults to \"mlab_config.json\"")
 
-    parser.add_argument("-s",
-                        "--separate",
-                        action="store_true",
-                        help="produces separate figures for each plot")
-
-    modules_group = parser.add_argument_group("modules")
-    modules_group.add_argument("-g",
-                               "--general",
-                               dest="modules_to_show", action="append_const", const="general",
-                               help="(only) display general information & histograms")
-    modules_group.add_argument("-r",
-                               "--rdf",
-                               dest="modules_to_show", action="append_const", const="rdf",
-                               help="(only) display radial distribution functions")
-    modules_group.add_argument("-d",
-                               "--descriptors",
-                               dest="modules_to_show", action="append_const", const="descriptors",
-                               help="(only) display SOAP descriptors")
+    # modules_group = parser.add_argument_group("modules")
+    # modules_group.add_argument("-G",
+    #                            "--general",
+    #                            dest="modules_to_show", action="append_const", const="general",
+    #                            help="(only) display general information & histograms")
+    # modules_group.add_argument("-R",
+    #                            "--rdf",
+    #                            dest="modules_to_show", action="append_const", const="rdf",
+    #                            help="(only) display radial distribution functions")
+    # modules_group.add_argument("-D",
+    #                            "--descriptors",
+    #                            dest="modules_to_show", action="append_const", const="descriptors",
+    #                            help="(only) display SOAP descriptors")
 
     return parser
 
@@ -73,7 +73,7 @@ def find_mlab_file(path: str | None) -> str:
     raise FileNotFoundError()
 
 
-def update_config(config: dict, args: dict):
+def merge_config(config: dict, args: dict):
     for key, value in args.items():
         if "." in key:
             key, subkey = key.split(".")
@@ -98,39 +98,44 @@ if __name__ == "__main__":
             json.dump(config, file, indent=4)
 
     # Merge arguments into config
-    update_config(config, vars(args))
+    merge_config(config, vars(args))
     set_config(config)
 
     # Load MLAB file
     mlab_path = find_mlab_file(args.mlab_path)
 
     with open(mlab_path, "rt") as file:
-        parser = MLABParser(file)
-        mlab = parser.read_mlab()
+        mlab = parsing.load(file)
 
     # Validate MLAB file
     # problems = list(validate_mlab(mlab))
 
-    # Split MLAB file
-    groups = defaultdict(list)
+    sections = parsing.split(mlab)
 
-    for conf in mlab.configurations:
-        groups[conf.header].append(conf)
+    if len(sections) > 1:
+        print(f"File seems to contain {len(sections)} groups of structures")
 
-    groups = [MLABGroup(mlab=mlab, header=header, configurations=confs) for header, confs in groups.items()]
+    if len(sections) > 4:
+        should_continue = Confirm.ask("Each section will be analysed separately. Are you sure you want to continue? [Y/n]",
+                                      default=True,
+                                      show_choices=False,
+                                      show_default=False)
 
-    print(f"Found {len(groups)} group{'s' if len(groups) != 1 else ''} of similar structures")
+        if not should_continue:
+            sys.exit()
 
     # Display information
-    show_all = config["modules_to_show"] is None or config["modules_to_show"] == []
+    if args.output == "matplotlib":
+        import internal.output.output_matplotlib as output
+    elif args.output == "dash":
+        import internal.output.output_dash as output
+    else:
+        output = None
 
-    for group in groups:
-        display_general_info(group)
+    for i, section in enumerate(sections):
+        stats = analysis.get_stats(section)
 
-        if show_all or "general" in config["modules_to_show"]:
-            display_general(group)
+        output_console.run((i + 1, len(sections)), section, stats)
 
-        if show_all or "rdf" in config["modules_to_show"]:
-            display_rdf(group)
-
-    plt.show()
+        if output is not None:
+            output.run(section, stats)
