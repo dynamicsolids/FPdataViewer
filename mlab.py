@@ -26,8 +26,8 @@ def register_args() -> argparse.ArgumentParser:
 
     parser.add_argument("-o",
                         "--output",
-                        choices=["matplotlib", "dash", "none"],
-                        default="matplotlib",
+                        choices=["plt", "pdf", "none"],
+                        default="plt",
                         dest="output",
                         help="method used to display results")
 
@@ -125,17 +125,17 @@ if __name__ == "__main__":
             sys.exit()
 
     # Display information
-    if args.output == "matplotlib":
-        import internal.output.output_matplotlib as output
-    elif args.output == "dash":
-        import internal.output.output_dash as output
+    if args.output == "plt":
+        import internal.output.output_plt as output
+    elif args.output == "pdf":
+        import internal.output.output_pdf as output
     else:
         output = None
 
     for i, section in enumerate(sections):
         stats = analysis.get_stats(section)
 
-        output_console.run((i + 1, len(sections)), section, stats)
+        output_console.run((i + 1, len(sections)), section)
 
         if output is not None:
             output.run(section, stats)

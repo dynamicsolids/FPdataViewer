@@ -14,7 +14,7 @@ class StressTensor:
     zx: float
 
     def get_mechanical_pressure(self):
-        return (self.xx + self.yy + self.zz) / 3
+        return -(self.xx + self.yy + self.zz) / 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,9 +110,3 @@ class MLABSection:
 
     def generate_type_lookup(self) -> tuple[str, ...]:
         return self.common_header.generate_type_lookup()
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class MLABSectionStats:
-    rdfs: dict[str, tuple[ArrayLike, ArrayLike]]
-    descriptors: dict[str, ArrayLike]

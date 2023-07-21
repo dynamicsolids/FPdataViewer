@@ -1,18 +1,24 @@
+from dataclasses import dataclass
+from operator import attrgetter
+
 import numpy as np
+import pandas as pd
+from PySide6.QtGui import QImage
 from dscribe.descriptors import SOAP
 from numpy.typing import ArrayLike
 from sklearn.decomposition import PCA
 
+from internal import rendering
 from internal.adapters.ase_adapter import section_to_atoms
 from internal.config import get_config
-from internal.structures import MLABSection, MLABSectionStats
+from internal.rdf import calculate_rdf
+from internal.structures import MLABSection, MLABConfiguration
 
 
 def _get_pairs_from_config(section: MLABSection, pairs_str: str | list[str]) -> list[tuple[str, str]]:
-    # TODO: Handle invalid input (or move this handling to other function?)
-    atoms = [atom for atom, _ in section.common_header.number_of_atoms_per_type]
+    atoms = [atom for atom, _ in section.number_of_atoms_per_type]
 
-    if pairs_str == "same":
+    if pairs_str == "auto":
         return list(zip(atoms, atoms))
     else:
         pairs = set()
@@ -26,60 +32,7 @@ def _get_pairs_from_config(section: MLABSection, pairs_str: str | list[str]) -> 
         return list(pairs)
 
 
-def calculate_radial_distribution(section: MLABSection, center: set[str], to: set[str], rmin: float, rmax: float, number_bins: int, structure_count: int) -> tuple[ArrayLike, ArrayLike]:
-    # TODO: Handle invalid atom types
-    bins = np.zeros(number_bins)
-
-    type_lookup = section.common_header.generate_type_lookup()
-
-    center_indices = [i for i in range(section.common_header.number_of_atoms) if type_lookup[i] in center]
-    to_indices = [i for i in range(section.common_header.number_of_atoms) if type_lookup[i] in to]
-
-    pairs = np.array([(center_index, to_index)
-                      for center_index in center_indices
-                      for to_index in to_indices
-                      if center_index != to_index])
-
-    offset_matrix = np.array([[ 0,  0, 0], [ 0,  0, -1], [ 0,  0, 1],
-                              [ 0, -1, 0], [ 0, -1, -1], [ 0, -1, 1],
-                              [ 0,  1, 0], [ 0,  1, -1], [ 0,  1, 1],
-                              [-1,  0, 0], [-1,  0, -1], [-1,  0, 1],
-                              [-1, -1, 0], [-1, -1, -1], [-1, -1, 1],
-                              [-1,  1, 0], [-1,  1, -1], [-1,  1, 1],
-                              [ 1,  0, 0], [ 1,  0, -1], [ 1,  0, 1],
-                              [ 1, -1, 0], [ 1, -1, -1], [ 1, -1, 1],
-                              [ 1,  1, 0], [ 1,  1, -1], [ 1,  1, 1]])
-
-    source = np.random.choice(section.configurations, structure_count) if structure_count < len(section.configurations) else section.configurations
-    for conf in source:
-        offsets = offset_matrix @ conf.lattice_vectors
-
-        for center_index, to_index in pairs:
-            for offset in offsets:
-                # distance = np.linalg.norm(conf.positions[center_index] - conf.positions[to_index] - offset)
-                difference = conf.positions[center_index] - conf.positions[to_index] - offset
-                distance = np.sqrt(difference[0]**2 + difference[1]**2 + difference[2]**2)
-
-                if rmin <= distance <= rmax:
-                    bins[int((distance - rmin) / (rmax - rmin) * number_bins)] += 1
-
-    bins /= len(source) * len(center_indices)
-
-    radii = np.linspace(rmin, rmax, number_bins + 1)
-    for i in range(number_bins):
-        inner_radius = radii[i]
-        outer_radius = radii[i + 1]
-        volume = 4 / 3 * np.pi * (outer_radius**3 - inner_radius**3)
-        bins[i] /= volume
-
-    total_volume = np.linalg.det(section.configurations[0].lattice_vectors)
-    density = len(to_indices) / total_volume
-    bins /= density
-
-    return radii, np.insert(bins, 0, bins[0])
-
-
-def calculate_radial_distributions(section: MLABSection) -> dict[str, tuple[ArrayLike, ArrayLike]]:
+def _calculate_rdfs(section: MLABSection) -> dict[str, tuple[ArrayLike, ArrayLike]]:
     rmin = get_config()["rdf"]["r_min"]
     rmax = get_config()["rdf"]["r_max"]
     bin_number = get_config()["rdf"]["bins"]
@@ -94,13 +47,13 @@ def calculate_radial_distributions(section: MLABSection) -> dict[str, tuple[Arra
     for center, to in pairs:
         print(f"Calculating radial distribution function for {center}-{to}")
 
-        bins, data = calculate_radial_distribution(section, {center}, {to}, rmin, rmax, bin_number, structures)
+        bins, data = calculate_rdf(section, {center}, {to}, rmin, rmax, bin_number, structures)
         rdfs[f"{center}-{to}"] = (bins, data)
 
     return rdfs
 
 
-def calculate_descriptors(section: MLABSection) -> dict[str, ArrayLike]:
+def _calculate_descriptors(section: MLABSection) -> dict[str, pd.DataFrame]:
     section_ase = section_to_atoms(section)
 
     soap = SOAP(
@@ -121,19 +74,69 @@ def calculate_descriptors(section: MLABSection) -> dict[str, ArrayLike]:
         centers = [i for i, t in enumerate(section.generate_type_lookup()) if t == type]
 
         feature_vectors = soap.create(section_ase, centers=[centers for _ in section_ase], n_jobs=-1)
-        feature_vectors = feature_vectors.reshape(-1, feature_vectors.shape[-1])
+        feature_vectors = feature_vectors.reshape((-1, feature_vectors.shape[-1]))
 
         pca = PCA(n_components=2, copy=False)
 
         feature_vectors = pca.fit_transform(feature_vectors)
 
-        descriptors_per_type[type] = feature_vectors
+        all_basis_sets = [(i, j) for basis_set in section.source.basis_sets for i, j in basis_set.indices]
+
+        energies = [conf.energy for conf in section.configurations for _ in centers]
+        is_basis = [(i, j) in all_basis_sets for i, conf in enumerate(section.configurations) for j in centers]
+
+        descriptors = pd.DataFrame({
+            "pc_1": feature_vectors[:, 0],
+            "pc_2": feature_vectors[:, 1],
+            "energy": energies,
+            "basis": is_basis,
+        })
+
+        descriptors_per_type[type] = descriptors.sample(frac=1).reset_index(drop=True)
 
     return descriptors_per_type
 
 
-def get_stats(section: MLABSection) -> MLABSectionStats:
-    return MLABSectionStats(
-        rdfs=calculate_radial_distributions(section),
-        descriptors=calculate_descriptors(section),
+def _calculate_general(section: MLABSection) -> pd.DataFrame:
+    def conf_to_dict(conf: MLABConfiguration) -> dict[str, float]:
+        return {
+            "energy": conf.energy,
+            "pressure": -(conf.stress.xx + conf.stress.yy + conf.stress.zz) / 3,
+            "lattice_a": np.linalg.norm(conf.lattice_vectors[0]),
+            "lattice_b": np.linalg.norm(conf.lattice_vectors[1]),
+            "lattice_c": np.linalg.norm(conf.lattice_vectors[2]),
+        }
+
+    return pd.DataFrame.from_records([conf_to_dict(conf) for conf in section.configurations])
+
+
+def _render_images(section: MLABSection) -> dict[str, dict[str, QImage]]:
+    min_energy_conf = min(section.configurations, key=attrgetter("energy"))
+    max_energy_conf = max(section.configurations, key=attrgetter("energy"))
+
+    image_size = (get_config()["rendering"]["width"], get_config()["rendering"]["height"])
+    min_images = rendering.render(min_energy_conf, size=image_size)
+    max_images = rendering.render(max_energy_conf, size=image_size)
+
+    return {
+        "min": min_images,
+        "max": max_images,
+    }
+
+
+@dataclass
+class Stats:
+    general: pd.DataFrame
+    rdfs: dict[str, tuple[ArrayLike, ArrayLike]]
+    descriptors: dict[str, pd.DataFrame]
+
+    images: dict[str, dict[str, QImage]]
+
+
+def get_stats(section: MLABSection) -> Stats:
+    return Stats(
+        general=_calculate_general(section),
+        rdfs=_calculate_rdfs(section),
+        descriptors=_calculate_descriptors(section),
+        images=_render_images(section),
     )

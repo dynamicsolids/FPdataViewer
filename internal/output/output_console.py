@@ -3,10 +3,10 @@ from rich import print
 from rich.panel import Panel
 from rich.text import Text
 
-from internal.structures import MLABSection, MLABSectionStats
+from internal.structures import MLABSection
 
 
-def run(section_index: tuple[int, int], section: MLABSection, stats: MLABSectionStats):
+def run(section_index: tuple[int, int], section: MLABSection):
     atom_repr = ", ".join([f"{name} ({number})" for name, number in section.common_header.number_of_atoms_per_type])
     energies = [conf.energy for conf in section.configurations]
     mean_energy = np.mean(energies)

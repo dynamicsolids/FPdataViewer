@@ -1,20 +1,16 @@
 import os
 os.environ["OVITO_GUI_MODE"] = "1"
 
-from operator import attrgetter
-
 from PySide6.QtGui import QImage
 
 from internal.adapters.ovito_adapter import configuration_to_datacollection
-from internal.structures import MLABSection
+from internal.structures import MLABConfiguration
 
 from ovito.pipeline import Pipeline, StaticSource
-from ovito.vis import Viewport, TachyonRenderer
+from ovito.vis import Viewport, TachyonRenderer, CoordinateTripodOverlay
 
 
-def render(section: MLABSection, size: tuple[int, int]) -> tuple[QImage, QImage]:
-    configuration = min(section.configurations, key=attrgetter("energy"))
-
+def render(configuration: MLABConfiguration, size: tuple[int, int]) -> dict[str, QImage]:
     data = configuration_to_datacollection(configuration)
 
     pipeline = Pipeline(source=StaticSource(data=data))
@@ -22,12 +18,25 @@ def render(section: MLABSection, size: tuple[int, int]) -> tuple[QImage, QImage]
 
     renderer = TachyonRenderer()
 
-    vp = Viewport(type=Viewport.Type.Top)
-    vp.zoom_all(size=size)
-    top = vp.render_image(size=size, renderer=renderer)
+    vp = Viewport()
+    tripod = CoordinateTripodOverlay(size=0.07)
+    vp.overlays.append(tripod)
 
-    vp = Viewport(type=Viewport.Type.Front)
-    vp.zoom_all(size=size)
-    front = vp.render_image(size=size, renderer=renderer)
+    images = {}
 
-    return top, front
+    vp.type = Viewport.Type.Perspective
+    vp.camera_dir = (4, 10, -5)
+    vp.zoom_all(size=size)
+    images["perspective"] = vp.render_image(size=size, renderer=renderer)
+
+    vp.type = Viewport.Type.Front
+    vp.zoom_all(size=size)
+    images["front"] = vp.render_image(size=size, renderer=renderer)
+
+    vp.type = Viewport.Type.Top
+    vp.zoom_all(size=size)
+    images["top"] = vp.render_image(size=size, renderer=renderer)
+
+    pipeline.remove_from_scene()
+
+    return images

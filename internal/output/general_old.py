@@ -1,12 +1,12 @@
 from abc import abstractmethod, ABC
 
 import numpy as np
-from output_matplotlib.figure import Figure
-from output_matplotlib.gridspec import SubplotSpec
+from output_plt.figure import Figure
+from output_plt.gridspec import SubplotSpec
 
 from internal.config import get_config
 from internal.structures import MLABSection
-from output_matplotlib import pyplot as plt
+from output_plt import pyplot as plt
 
 
 class Plot(ABC):
