@@ -1,6 +1,6 @@
 from ase import Atoms
 
-from internal.structures import MLABSection, MLABConfiguration
+from mlab_tools.structures import MLABSection, MLABConfiguration
 
 
 def configuration_to_atoms(conf: MLABConfiguration) -> Atoms:

@@ -1,7 +1,7 @@
 import numpy as np
 from ovito.data import DataCollection, ParticleType, SimulationCell
 
-from internal.structures import MLABConfiguration
+from mlab_tools.structures import MLABConfiguration
 
 
 def configuration_to_datacollection(conf: MLABConfiguration) -> DataCollection:

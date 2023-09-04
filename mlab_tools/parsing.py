@@ -6,7 +6,7 @@ from typing import TextIO
 import numpy as np
 from numpy.typing import ArrayLike
 
-from internal.structures import MLAB, MLABBasisSet, MLABConfiguration, StressTensor, MLABConfigurationHeader, MLABSection
+from mlab_tools.structures import MLAB, MLABBasisSet, MLABConfiguration, StressTensor, MLABConfigurationHeader, MLABSection
 
 
 class MLABParser:

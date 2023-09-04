@@ -1,9 +1,9 @@
 import time
 
-import mlab.parsing as p
+import mlab_tools.parsing as p
 
 if __name__ == '__main__':
-    with open("../example_files/ML_AB_Li3N") as file:
+    with open("../examples/ML_AB_Li3N") as file:
         N = 100
 
         st = time.time()

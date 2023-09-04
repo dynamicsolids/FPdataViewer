@@ -1,141 +1,185 @@
 import argparse
 import json
-import os
 import sys
+from pathlib import Path
 
-from rich.prompt import Confirm
-
-from internal import parsing, analysis
-from internal.config import default_config, set_config
-from internal.output import output_console
+from mlab_tools import parsing
+from mlab_viewer.config import default_config, set_config
 
 
 def register_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="reads ML_AB files and displays various statistics")
-    # subparsers = parser.add_subparsers(dest="command", help="display only specific information")
-    # subparsers.add_parser("general", help="general information & histograms")
-    # subparsers.add_parser("rdf", help="radial distribution functions")
-    # subparsers.add_parser("desc", help="SOAP descriptors")
 
-    parser.add_argument("-i",
-                        "--input",
-                        default=None,
-                        dest="mlab_path",
-                        metavar="file",
-                        help="file to read - if directory is supplied, looks for ML_AB file - defaults to working directory")
+    parser.add_argument(
+        nargs="?",
+        metavar="input file",
+        action="append",
+        dest="pos_args",
+        help="path to ML_AB file",
+    )
 
-    parser.add_argument("-o",
-                        "--output",
-                        choices=["plt", "pdf", "none"],
-                        default="plt",
-                        dest="output",
-                        help="method used to display results")
+    parser.add_argument(
+        nargs="?",
+        metavar="output file",
+        action="append",
+        dest="pos_args",
+        help="path for output, format set by --mode",
+    )
 
-    parser.add_argument("-c",
-                        "--config",
-                        default="mlab_config.json",
-                        dest="config_path",
-                        metavar="file",
-                        help="config file - will be created if it does not exist - defaults to \"mlab_config.json\"")
+    parser.add_argument(
+        "-i",
+        "--in",
+        "--input",
+        default=None,
+        metavar="input file (ML_AB)",
+        help="path to input file (ML_AB file)\nif directory is supplied, looks for ML_AB file\ndefaults to working directory",
+        dest="input_file",
+    )
 
-    # modules_group = parser.add_argument_group("modules")
-    # modules_group.add_argument("-G",
-    #                            "--general",
-    #                            dest="modules_to_show", action="append_const", const="general",
-    #                            help="(only) display general information & histograms")
-    # modules_group.add_argument("-R",
-    #                            "--rdf",
-    #                            dest="modules_to_show", action="append_const", const="rdf",
-    #                            help="(only) display radial distribution functions")
-    # modules_group.add_argument("-D",
-    #                            "--descriptors",
-    #                            dest="modules_to_show", action="append_const", const="descriptors",
-    #                            help="(only) display SOAP descriptors")
+    parser.add_argument(
+        "-o",
+        "--out",
+        "--output",
+        default=None,
+        metavar="output file",
+        help="path to output file (unused if --mode none)",
+        dest="output_file",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--conf",
+        "--config",
+        default=None,
+        help="path to config file",
+        dest="config_file",
+    )
+
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["pdf", "plt", "none"],
+        default="pdf",
+        help="output format. pdf (pdf), matplotlib plot (plot), or only print to console (none)",
+        dest="mode",
+    )
+
+    parser.add_argument(
+        "-s",
+        "--skip",
+        default=[],
+        choices=["rdf", "desc", "img"],
+        nargs="*",
+        help="skips calculations for radial distribution functions (rdf) or descriptors (desc)",
+        dest="skip",
+    )
+
+    parser.add_argument(
+        "-r",
+        "--raster",
+        "--rasterize",
+        action="store_true",
+        help="disables vector image format for plots (which can produce large files when many descriptors are included) and uses raster images",
+        dest="rasterize",
+    )
+    parser.set_defaults(rasterize=False)
 
     return parser
 
 
-def find_mlab_file(path: str | None) -> str:
+def find_mlab_file(path: str | None) -> Path:
     if path is None:
-        path = os.getcwd()
+        path = Path.cwd()
+    else:
+        path = Path(path)
 
-    if os.path.isfile(path):
+    if path.is_file():
         return path
-
-    if os.path.isdir(path):
+    elif path.is_dir():
         names_to_look_for = ["ML_AB", "ML_ABN", "ML_ABCAR"]
 
         for name in names_to_look_for:
-            new_path = os.path.join(path, name)
-            if os.path.isfile(new_path):
+            new_path = path / name
+            if new_path.is_file():
                 return new_path
 
-    raise FileNotFoundError()
+    raise FileNotFoundError("could not find ML_AB file")
 
 
-def merge_config(config: dict, args: dict):
-    for key, value in args.items():
-        if "." in key:
-            key, subkey = key.split(".")
-
-            sub_dict = config.get(key, {})
-            sub_dict[subkey] = value
-        else:
-            config[key] = value
+def find_output_file(input_path: Path, output_path: str | None) -> Path:
+    if output_path is None:
+        return input_path.with_suffix(".pdf")
+    else:
+        return Path(output_path)
 
 
 if __name__ == "__main__":
-    # Load arguments
-    args = register_args().parse_args()
+    # Parse arguments
+    parser = register_args()
+    args = parser.parse_args()
+
+    if args.pos_args[0] is not None and args.input_file is not None:
+        parser.error(f"supplied two input paths (\"{args.pos_args[0]}\" and \"{args.input_file}\")")
+    elif args.pos_args[1] is not None and args.output_file is not None:
+        parser.error(f"supplied two output paths (\"{args.pos_args[1]}\" and \"{args.output_file}\")")
+
+    args.input_file = find_mlab_file(args.input_file or args.pos_args[0])
+    args.output_file = find_output_file(args.input_file, args.output_file or args.pos_args[1])
+
+    if args.mode == "pdf" and args.output_file.exists():
+        answer = input(f"{args.output_file} already exists and will be overwritten. are you sure you want to continue? [Y/n] ")
+
+        if answer.lower() in ["n", "no"]:
+            sys.exit(0)
+
 
     # Load config file
-    if os.path.isfile(args.config_path):
-        with open(args.config_path, "rt") as file:
-            config = json.load(file)
-    else:
-        config = default_config
-        with open(args.config_path, "wt") as file:
-            json.dump(config, file, indent=4)
+    config = default_config
 
-    # Merge arguments into config
-    merge_config(config, vars(args))
+    if args.config_file is not None:
+        with args.config_file.open(mode="rt") as file:
+            config.update(json.load(file))
+    # else:
+    #     with open(args.config_path, "wt") as file:
+    #         json.dump(config, file, indent=4)
+
     set_config(config)
 
     # Load MLAB file
-    mlab_path = find_mlab_file(args.mlab_path)
-
-    with open(mlab_path, "rt") as file:
+    with args.input_file.open(mode="rt") as file:
         mlab = parsing.load(file)
-
-    # Validate MLAB file
     # problems = list(validate_mlab(mlab))
-
     sections = parsing.split(mlab)
 
-    if len(sections) > 1:
-        print(f"File seems to contain {len(sections)} groups of structures")
+    # Prompt user for confirmation when many sections are found
+    print(f"file contains {len(sections)} group{'' if len(sections) == 1 else 's'} of structures")
 
-    if len(sections) > 4:
-        should_continue = Confirm.ask("Each section will be analysed separately. Are you sure you want to continue? [Y/n]",
-                                      default=True,
-                                      show_choices=False,
-                                      show_default=False)
+    if len(sections) > 2:
+        answer = input("each group will be analysed separately and to different files. are you sure you want to continue? [Y/n] ")
 
-        if not should_continue:
-            sys.exit()
+        if answer.lower() in ["n", "no"]:
+            sys.exit(0)
 
-    # Display information
-    if args.output == "plt":
-        import internal.output.output_plt as output
-    elif args.output == "pdf":
-        import internal.output.output_pdf as output
+    print()
+    for i, section in enumerate(sections):
+        atom_repr = ", ".join([f"{name} ({number})" for name, number in section.number_of_atoms_per_type])
+        current_group = i + 1
+        total_groups = len(sections)
+
+        print(f"[{current_group}/{total_groups}] name       : {section.name}")
+        print(f"[{current_group}/{total_groups}] atoms      : {section.number_of_atoms}")
+        print(f"[{current_group}/{total_groups}] atom types : {atom_repr}")
+        print(f"[{current_group}/{total_groups}] structures : {len(section.configurations)} / {len(section.source.configurations)}")
+        print()
+
+    if args.mode == "plt":
+        import mlab_viewer.output.output_plt as output
+    elif args.mode == "pdf":
+        import mlab_viewer.output.output_pdf as output
     else:
         output = None
 
-    for i, section in enumerate(sections):
-        stats = analysis.get_stats(section)
+    if output is not None:
+        output.run(args, mlab, sections)
 
-        output_console.run((i + 1, len(sections)), section)
-
-        if output is not None:
-            output.run(section, stats)
+        print("\r")
