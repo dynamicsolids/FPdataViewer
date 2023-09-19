@@ -39,6 +39,13 @@ pip install mlab_viewer # DOES NOT WORK YET
 
 </details>
 
+### Conda install
+conda create --name FPdataviewer python=3.11
+conda activate FPdataviewer 
+conda install numpy pandas matplotlib seaborn numba dscribe scikit-learn ovito pyside6 pillow
+
+python mlab.py examples/ML_AB_Li3N --mode plt
+
 ## Usage
 
 ```shell
