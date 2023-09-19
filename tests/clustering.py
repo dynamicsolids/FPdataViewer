@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import HDBSCAN
 from sklearn.decomposition import PCA
 
-from mlab_tools.adapters.ase_adapter import section_to_atoms
-from mlab_tools.parsing import load, split
+from mlab.adapters.ase_adapter import section_to_atoms
+from mlab.parsing import load, split
 
 with open("/mnt/c/Users/thijm/Documents/PycharmProjects/mlab/example_files/ML_AB_KAgSe") as file:
     mlab = load(file)

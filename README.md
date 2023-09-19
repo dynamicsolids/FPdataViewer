@@ -14,17 +14,9 @@ Either produces an interactive overview (`--mode plt`) or saves to a file (`--mo
 
 </details>
 
-| ![rendered front page](image_a.png)                 | ![rendered image page](image_b.png)                |
+| ![rendered front page](images/image_a.png)                 | ![rendered image page](images/image_b.png)                |
 |-----------------------------------------------------|----------------------------------------------------|
-| ![rendered atom type page for bismuth](image_c.png) | ![rendered atom type page for oxygen](image_d.png) |
-
-### General information
-
-### Radial distribution functions
-
-### Descriptors
-
-### Rendering
+| ![rendered atom type page for bismuth](images/image_c.png) | ![rendered atom type page for oxygen](images/image_d.png) |
 
 ## Installation
 
@@ -38,12 +30,12 @@ pip install mlab_viewer # DOES NOT WORK YET
 <details>
 <summary>Dependencies</summary>
 
-| Component                         | Dependencies (immediate)                                                                                                                                                                   |
-|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **required**                      | **[numpy](https://pypi.org/project/numpy/), [pandas](https://pypi.org/project/pandas/), [matplotlib](https://pypi.org/project/matplotlib/), [seaborn](https://pypi.org/project/seaborn/)** |
-| **radial distribution functions** | **[numba](https://pypi.org/project/numba/)**                                                                                                                                               |
-| **descriptors**                   | **[dscribe](https://pypi.org/project/dscribe/) (possible compatability issues), [scikit-learn](https://pypi.org/project/scikit-learn/)**                                                   |
-| **rendering**                     | **[ovito](https://pypi.org/project/ovito/), [pyside6](https://pypi.org/project/PySide6/), [pillow](https://pypi.org/project/Pillow/)**                                                     |
+| Component                         | Dependencies (immediate)                                                                                                                                                                |
+|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **required**                      | **[numpy](https://pypi.org/project/numpy/) [pandas](https://pypi.org/project/pandas/) [matplotlib](https://pypi.org/project/matplotlib/) [seaborn](https://pypi.org/project/seaborn/)** |
+| **radial distribution functions** | **[numba](https://pypi.org/project/numba/)**                                                                                                                                            |
+| **descriptors**                   | **[scikit-learn](https://pypi.org/project/scikit-learn/) [dscribe](https://pypi.org/project/dscribe/) (possible compatability issues)**                                                                                                                             |
+| **rendering**                     | **[ovito](https://pypi.org/project/ovito/) [pyside6](https://pypi.org/project/PySide6/) [pillow](https://pypi.org/project/Pillow/)**                                                    |
 
 </details>
 
@@ -74,12 +66,17 @@ See [Config file](#config-file).
 ##### `--skip <rdf/desc/img>`, `-s`
 Skip calculations for radial distribution functions (`rdf`), descriptors (`desc`), or image rendering (`img`). Multiple can be selected. Useful when only certain statistics are needed.
 
-##### `-rasterize`, `-r`
+##### `--strict`, `-t`
+Validates the input file. 
+Some formats (like VASP's ML_AB) contain redundant or possibly self-contradictory information that can cause parsers to fail unpredictably. 
+This option will check the input file against specifications to minimize these errors and help the user repair the broken file.
+
+##### `--rasterize`, `-r`
 Disables vector image format for plots and uses raster images. This can greatly reduce file size when many descriptors are being drawn. Simply feeds `rasterize=True` to matplotlib.
 
 ## Config file
 
-Specifying a custom config will override settings from the default, which is located in [config.py](mlab_viewer/config.py).
+Specifying a custom config will override settings from the default, which is located in [config.py](fpdata/render/config.py).
 
 ```json
 {
