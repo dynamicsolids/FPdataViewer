@@ -1,10 +1,10 @@
 import numpy as np
 from ovito.data import DataCollection, ParticleType, SimulationCell
 
-from mlab.mlab import MLABConfiguration
+from fpdataviewer.mlab.mlab import MLABConfiguration
 
 
-def configuration_to_datacollection(conf: MLABConfiguration) -> DataCollection:
+def from_configuration(conf: MLABConfiguration) -> DataCollection:
     def create_default_particle_type(name: str, id: int) -> ParticleType:
         type = ParticleType(name=name, id=id)
         type.load_defaults()

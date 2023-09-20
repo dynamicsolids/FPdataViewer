@@ -1,0 +1,12 @@
+setuptools
+numpy
+pandas
+numba
+Pillow
+PySide6
+ovito
+dscribe
+scikit-learn
+seaborn
+matplotlib
+ase

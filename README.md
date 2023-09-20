@@ -2,69 +2,84 @@
 
 Reads [VASP MLFF](https://www.vasp.at/wiki/index.php/Machine_learning_force_field_calculations:_Basics) [input and output files](https://www.vasp.at/wiki/index.php/ML_AB) (named ML_AB and ML_ABN) 
 and graphs various statistics to provide a small overview of the file's content using matplotlib. 
-Either produces an interactive overview (`--mode plt`) or saves to a file (`--mode pdf`). 
+Either saves to a PDF file (`plot`) or launches matplotlib (`plot --interactive`). 
 
-<details>
-<summary>Table of Contents</summary>
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [Options](#options)
-- [Config](#config-file)
-
-</details>
+Also provides some tools for converting between file types using [ASE](https://wiki.fysik.dtu.dk/ase/) 
+(`convert`), repairing broken files (`validate`), and quickly inspecting the contents files (`inspect`). Some of these tools are also provided by the ASE CLI, and will become obsolete when the _vasp-mlab_ format is implemented).
 
 | ![rendered front page](images/image_a.png)                 | ![rendered image page](images/image_b.png)                |
-|-----------------------------------------------------|----------------------------------------------------|
+|------------------------------------------------------------|-----------------------------------------------------------|
 | ![rendered atom type page for bismuth](images/image_c.png) | ![rendered atom type page for oxygen](images/image_d.png) |
+
+## Table of contents
+
+- [Installation](#installation-using-pip)
+- [Requirements](#requirements)
+- [Usage](#usage)
+  - [plot](#fpdataviewer-plot)
+  - [inspect](#fpdataviewer-inspect)
+  - [convert](#fpdataviewer-convert)
+  - [validate](#fpdataviewer-validate)
+- [Config](#config-file)
 
 ## Installation
 
+### pip
+
 ```shell
-pip install mlab_viewer # DOES NOT WORK YET
+pip install -i https://test.pypi.org/simple/ fpdataviewer
 ```
 
-> Installation through pip will pull in a number of large libraries used in analysis, some of which may not be supported on Windows. 
-> If this is not preferable, consider manually installing and using `--skip` to avoid said libraries (see dependencies and [options](#options)).
+> Installation through pip is the preferred method, but will pull in a number of large libraries used in analysis, some of which may not be supported on Windows. 
+> If this is not preferable, consider installing with `--no-deps` and using `--skip` to avoid said libraries (see [requirements](#requirements) and [options](#options)).
 
-<details>
-<summary>Dependencies</summary>
+### conda
+
+```shell
+# NOT CURRENTLY AVAILABLE
+```
+
+[//]: # (conda create --name FPdataviewer python=3.11)
+[//]: # (conda activate FPdataviewer )
+[//]: # (conda install numpy pandas matplotlib seaborn numba dscribe scikit-learn ovito pyside6 pillow)
+[//]: # ()
+[//]: # (python mlab.py examples/ML_AB_Li3N --mode plt)
+
+## Requirements
+
+Not all dependencies are required when `--skip` is used.
 
 | Component                         | Dependencies (immediate)                                                                                                                                                                |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **required**                      | **[numpy](https://pypi.org/project/numpy/) [pandas](https://pypi.org/project/pandas/) [matplotlib](https://pypi.org/project/matplotlib/) [seaborn](https://pypi.org/project/seaborn/)** |
 | **radial distribution functions** | **[numba](https://pypi.org/project/numba/)**                                                                                                                                            |
-| **descriptors**                   | **[scikit-learn](https://pypi.org/project/scikit-learn/) [dscribe](https://pypi.org/project/dscribe/) (possible compatability issues)**                                                                                                                             |
-| **rendering**                     | **[ovito](https://pypi.org/project/ovito/) [pyside6](https://pypi.org/project/PySide6/) [pillow](https://pypi.org/project/Pillow/)**                                                    |
-
-</details>
-
-### Conda install
-conda create --name FPdataviewer python=3.11
-conda activate FPdataviewer 
-conda install numpy pandas matplotlib seaborn numba dscribe scikit-learn ovito pyside6 pillow
-
-python mlab.py examples/ML_AB_Li3N --mode plt
+| **descriptors**                   | **[scikit-learn](https://pypi.org/project/scikit-learn/) [dscribe](https://pypi.org/project/dscribe/) (possible compatability issues)**                                                 |
+| **rendering**                     | **[ovito](https://pypi.org/project/ovito/) [PySide6](https://pypi.org/project/PySide6/) [Pillow](https://pypi.org/project/Pillow/)**                                                    |
 
 ## Usage
 
 ```shell
 # Basic PDF generation
-mlab_viewer examples/ML_AB overview.pdf
+fpdataviewer plot -i examples/ML_AB -o overview.pdf
 
 # Interactive plots
-mlab_viewer examples/ML_AB --mode plt
+fpdataviewer plot -i examples/ML_AB --interactive
 
-# Use ML_AB(N) in working directory and output to ML_AB(N).pdf, additionally use custom config
-mlab_viewer --config mlab_viewer.json
+# Specify custom config
+fpdataviewer plot -i examples/ML_AB --config mlab_viewer.json
 
 # Skip radial distribution functions and image rendering, rasterize remaining graphs
-mlab_viewer --rasterize --skip rdf img
+fpdataviewer plot --rasterize --skip rdf img
 ```
 
-### Options
+### fpdataviewer plot
 
-##### `--mode <[pdf]/plt/none>`, `-m`
+Plots stuff
+
+<details>
+<summary>Options</summary>
+
+##### `--interactive`, `-x`
 Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
 
 ##### `--config <file>`, `-c`
@@ -81,9 +96,47 @@ This option will check the input file against specifications to minimize these e
 ##### `--rasterize`, `-r`
 Disables vector image format for plots and uses raster images. This can greatly reduce file size when many descriptors are being drawn. Simply feeds `rasterize=True` to matplotlib.
 
+</details>
+
+### fpdataviewer inspect
+
+Inspects stuff
+
+<details>
+<summary>Options</summary>
+
+##### `--interactive`, `-x`
+Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
+
+</details>
+
+### fpdataviewer convert
+
+Plots stuff
+
+<details>
+<summary>Options</summary>
+
+##### `--interactive`, `-x`
+Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
+
+</details>
+
+### fpdataviewer validate
+
+Plots stuff
+
+<details>
+<summary>Options</summary>
+
+##### `--interactive`, `-x`
+Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
+
+</details>
+
 ## Config file
 
-Specifying a custom config will override settings from the default, which is located in [config.py](fpdata/render/config.py).
+Specifying a custom config will override settings from the default, which is located in [config.py](fpdataviewer/cli/config.py).
 
 ```json
 {

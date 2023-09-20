@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt, cm
 from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap
 
-from src.internal.config import get_config
+from fpdataviewer.cli.config import get_config
 
 _red = "tab:red"
 _green = "tab:green"

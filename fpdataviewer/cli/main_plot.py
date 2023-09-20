@@ -1,10 +1,10 @@
 import json
 
-from mlab import parsing, validation
-from src.internal.config import set_config, default_config
+from fpdataviewer.cli.config import set_config, default_config
+from fpdataviewer.mlab import parsing, validation
 
 
-def exec(args):
+def plot(args):
     # Load config
     config = default_config
 
@@ -19,14 +19,13 @@ def exec(args):
         mlab = parsing.load(file)
     if args.strict:
         validation.validate(mlab)
-    sections = parsing.split(mlab)
 
     # Plot
     if args.interactive:
-        import src.internal.output.output_plt as output
+        import fpdataviewer.cli.plotting.plot_mpl as output
     else:
-        import src.internal.output.output_pdf as output
+        import fpdataviewer.cli.plotting.plot_pdf as output
 
-    output.run(args, mlab, sections)
+    output.run(args, mlab)
 
-    print("\r")
+    print("\r", flush=True)

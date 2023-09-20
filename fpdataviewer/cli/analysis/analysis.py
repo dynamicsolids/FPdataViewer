@@ -1,7 +1,7 @@
 import numpy as np
 
-from mlab.mlab import MLABSection
-from src.internal.config import get_config
+from fpdataviewer.cli.config import get_config
+from fpdataviewer.mlab.mlab import MLABSection
 
 
 def gather_metadata(args, section: MLABSection) -> dict:
@@ -23,19 +23,19 @@ def gather_metadata(args, section: MLABSection) -> dict:
     section_metadata["non_periodic_radius"] = min_offset
     find_and_replace(get_config(), "auto", 1.5 * min_offset)
 
-    from src.internal.processing.misc import calculate_misc
+    from fpdataviewer.cli.analysis.misc import calculate_misc
     section_metadata["misc"] = calculate_misc(section)
 
     if "rdf" not in args.skip:
-        from  src.internal.processing.rdfs import calculate_rdfs
+        from fpdataviewer.cli.analysis.rdfs import calculate_rdfs
         section_metadata["rdf"] = calculate_rdfs(section)
 
     if "desc" not in args.skip:
-        from  src.internal.processing.descriptors import calculate_descriptors
+        from fpdataviewer.cli.analysis.descriptors import calculate_descriptors
         section_metadata["desc"] = calculate_descriptors(section)
 
     if "img" not in args.skip:
-        from  src.internal.processing.images import render_images
+        from fpdataviewer.cli.analysis.images import render_images
         section_metadata["img"] = render_images(section)
 
     return section_metadata

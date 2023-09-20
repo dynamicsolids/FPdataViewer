@@ -1,6 +1,6 @@
 from typing import Any
 
-from mlab.mlab import MLAB
+from fpdataviewer.mlab.mlab import MLAB
 
 
 class ValidationException(Exception):

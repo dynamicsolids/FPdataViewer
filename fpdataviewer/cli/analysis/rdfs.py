@@ -2,8 +2,8 @@ import numpy as np
 from numba import njit
 from numpy.typing import ArrayLike
 
-from mlab.mlab import MLABSection
-from src.internal.config import get_config
+from fpdataviewer.cli.config import get_config
+from fpdataviewer.mlab.mlab import MLABSection
 
 
 def calculate_rdfs(section: MLABSection) -> dict[tuple[str, str], tuple[ArrayLike, ArrayLike]]:
@@ -19,7 +19,7 @@ def calculate_rdfs(section: MLABSection) -> dict[tuple[str, str], tuple[ArrayLik
     rdfs = {}
 
     for center, to in pairs:
-        print(f"\rcalculating radial distribution function for {center}-{to} ... ", end="")
+        print(f"\rcalculating radial distribution function for {center}-{to} ... ", end="", flush=True)
 
         bins, data = _calculate_rdf(section, {center}, {to}, rmin, rmax, bin_number, structures)
         rdfs[(center, to)] = (bins, data)

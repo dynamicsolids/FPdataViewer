@@ -5,10 +5,9 @@ from typing import TextIO
 import numpy as np
 from numpy.typing import ArrayLike
 
-from mlab.mlab import MLAB, MLABBasisSet, MLABConfiguration, StressTensor, MLABConfigurationHeader, MLABSection
+from fpdataviewer.mlab.mlab import MLAB, MLABBasisSet, MLABConfiguration, StressTensor, MLABConfigurationHeader, MLABSection
 
 _re_divider = re.compile(r"^\s*(=+|-+|\*+)\s*$")
-_re_malformed_divider = re.compile(r"^(=|-|\*|\s)*$")
 _re_basis_set = re.compile(r"^Basis set for ([a-zA-Z0-9]+)$")
 _re_configuration = re.compile(r"^Configuration num\.\s+([0-9]+)$")
 
@@ -51,8 +50,6 @@ class MLABReader:
             elif line == "":
                 self.eof = True
                 break
-            elif _re_malformed_divider.fullmatch(line):
-                raise ParserException(f"malformed divider on line {self.line_counter}")
             else:
                 stripped = line.strip()
                 if stripped != "":

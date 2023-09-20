@@ -3,9 +3,9 @@ import pandas as pd
 from dscribe.descriptors import SOAP, ACSF, LMBTR
 from sklearn.decomposition import PCA
 
-from mlab.adapters.ase_adapter import section_to_atoms
-from mlab.mlab import MLABSection
-from src.internal.config import get_config
+from fpdataviewer.cli.config import get_config
+from fpdataviewer.mlab import ase_adapter
+from fpdataviewer.mlab.mlab import MLABSection
 
 
 def calculate_descriptors(section: MLABSection) -> dict[str, pd.DataFrame]:
@@ -14,7 +14,7 @@ def calculate_descriptors(section: MLABSection) -> dict[str, pd.DataFrame]:
     if isinstance(structures, float) and 0. <= structures <= 1.:
         structures = int(structures * len(section.configurations))
 
-    section_ase = section_to_atoms(section)
+    section_ase = ase_adapter.from_section(section)
     section_ase = np.random.choice(section_ase, structures) if 1 <= structures < len(section_ase) else section_ase
 
     descriptor_object = get_descriptor_object(section)
@@ -22,7 +22,7 @@ def calculate_descriptors(section: MLABSection) -> dict[str, pd.DataFrame]:
     descriptors_per_type = {}
 
     for type, _ in section.number_of_atoms_per_type:
-        print(f"\rcalculating descriptors for {type} ... ", end="")
+        print(f"\rcalculating descriptors for {type} ... ", end="", flush=True)
 
         centers = [i for i, t in enumerate(section.generate_type_lookup()) if t == type]
 

@@ -4,15 +4,15 @@ from operator import attrgetter
 
 from PIL import Image
 
-from src.internal.config import get_config
+from fpdataviewer.cli.config import get_config
 
 os.environ["OVITO_GUI_MODE"] = "1"
 
 from PySide6.QtCore import QBuffer
 from PySide6.QtGui import QImage
 
-from mlab.adapters.ovito_adapter import configuration_to_datacollection
-from mlab.mlab import MLABConfiguration, MLABSection
+from fpdataviewer.mlab import ovito_adapter
+from fpdataviewer.mlab.mlab import MLABConfiguration, MLABSection
 
 from ovito.pipeline import Pipeline, StaticSource
 from ovito.vis import Viewport, TachyonRenderer, CoordinateTripodOverlay
@@ -24,9 +24,9 @@ def render_images(section: MLABSection) -> dict[str, dict[str, QImage]]:
 
     image_size = (get_config()["rendering"]["width"], get_config()["rendering"]["height"])
 
-    print("\rrendering minimum energy configuration ... ", end="")
+    print("\rrendering minimum energy configuration ... ", end="", flush=True)
     min_images = _render_images_configuration(min_energy_conf, size=image_size)
-    print("\rrendering maximum energy configuration ... ", end="")
+    print("\rrendering maximum energy configuration ... ", end="", flush=True)
     max_images = _render_images_configuration(max_energy_conf, size=image_size)
 
     return {
@@ -36,7 +36,7 @@ def render_images(section: MLABSection) -> dict[str, dict[str, QImage]]:
 
 
 def _render_images_configuration(configuration: MLABConfiguration, size: tuple[int, int]) -> dict[str, Image]:
-    data = configuration_to_datacollection(configuration)
+    data = ovito_adapter.from_configuration(configuration)
 
     pipeline = Pipeline(source=StaticSource(data=data))
     pipeline.add_to_scene()

@@ -1,93 +1,74 @@
-from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.figure import Figure
 
-from mlab.mlab import MLAB, MLABSection
-from src.internal import analysis
-from src.internal.output.plotting import *
+from fpdataviewer.cli.analysis import analysis
+from fpdataviewer.cli.plotting.common import *
+from fpdataviewer.mlab.mlab import MLAB, MLABSection
+from fpdataviewer.mlab.parsing import split
 
-_landscape_a4 = (11.69, 8.27)
 
+def run(args, mlab: MLAB):
+    sections = split(mlab)
 
-def run(args, mlab: MLAB, sections: list[MLABSection]):
-    metadata = {
-        "Title": args.input_file.name,
-        "Creator": "mlab_viewer",
+    # plt.style.use("ggplot")
+
+    plt.rcParams.update({
+        # "font.size": 6,
+        "font.family": "monospace",
+    })
+
+    fig_params = {
+        "layout": "constrained",
+        "rasterized": args.rasterize,
     }
 
-    with PdfPages(args.output_file, metadata=metadata, keep_empty=True) as pdf:
-        plt.style.use("ggplot")
-
-        plt.rcParams.update({
-            "font.size": 6,
-            "font.family": "monospace",
+    for i, section in enumerate(sections):
+        section_metadata = analysis.gather_metadata(args, section)
+        section_metadata.update({
+            "file_name": args.input_file.name,
+            "current_group": i + 1,
+            "total_groups": len(sections),
         })
 
-        fig_params = {
-            "figsize": _landscape_a4,
-            "layout": "constrained",
-            "rasterized": args.rasterize,
-        }
+        print("\rcreating figures ... ", end="", flush=True)
 
-        for i, section in enumerate(sections):
-            section_metadata = analysis.gather_metadata(args, section)
-            section_metadata.update({
-                "file_name": args.input_file.name,
-                "current_group": i + 1,
-                "total_groups": len(sections),
-            })
+        fig = plt.figure(num="overview", **fig_params)
+        _make_overview_page(section, section_metadata, fig)
 
-            print("\rcreating figures ... ", end="")
+        fig = plt.figure(num="histograms", **fig_params)
+        _make_histogram_page(section, section_metadata, fig)
 
-            fig = plt.figure(**fig_params)
-            _make_overview_page(section, section_metadata, fig)
-            pdf.savefig(dpi=600)
-            plt.close()
+        fig = plt.figure(num="images", **fig_params)
+        _make_image_page(section, section_metadata, fig)
 
-            fig = plt.figure(**fig_params)
-            _make_image_page(section, section_metadata, fig)
-            pdf.savefig(dpi=600)
-            plt.close()
+        for type, _ in section.number_of_atoms_per_type:
+            fig = plt.figure(num=f"atom type: {type}", **fig_params)
+            _make_type_page(section, section_metadata, fig, type)
 
-            for type, _ in section.number_of_atoms_per_type:
-                fig = plt.figure(**fig_params)
-                _make_type_page(section, section_metadata, fig, type)
-                pdf.savefig(dpi=600)
-                plt.close()
+        if i < len(sections) - 1:
+            print("\rclose to view next group ", end="", flush=True)
+        else:
+            print("\rclose to exit ", end="", flush=True)
+
+        plt.show()
+
+
+def _make_histogram_page(section: MLABSection, section_metadata: dict, fig: Figure):
+    grid = fig.add_gridspec(ncols=3, nrows=3)
+
+    plot_energy_hist (section_metadata["misc"], fig.add_subplot(grid[0, 0]))
+    plot_energy_line (section_metadata["misc"], fig.add_subplot(grid[0, 1:]))
+    plot_lattice_hist(section_metadata["misc"], fig.add_subplot(grid[1, 0]))
+    plot_lattice_line(section_metadata["misc"], fig.add_subplot(grid[1, 1:]))
+    plot_stress_hist (section_metadata["misc"], fig.add_subplot(grid[2, 0]))
+    plot_stress_line (section_metadata["misc"], fig.add_subplot(grid[2, 1:]))
 
 
 def _make_overview_page(section: MLABSection, section_metadata: dict, fig: Figure):
-    grid = fig.add_gridspec(ncols=3, nrows=3)
+    grid = fig.add_gridspec(ncols=2, nrows=2)
 
-    fig.suptitle(f"[{section_metadata['current_group']}/{section_metadata['total_groups']}] {section_metadata['file_name']} ({section.name})", fontsize=12)
-
-    fig_top_left = fig.add_subfigure(grid[0, 0:2], in_layout=True)
-    fig_top_right = fig.add_subfigure(grid[0, 2], in_layout=True)
-    fig_bottom = fig.add_subfigure(grid[1:, :], in_layout=True)
-
-    # fig_top_left.set_facecolor("0.25")
-    # fig_top_right.set_facecolor("0.50")
-    # fig_bottom.set_facecolor("0.75")
-
-    # fig_top_left.suptitle("ML_AB: New", fontsize=10)
-    # fig_top_right.suptitle("front view", fontsize=10)
-    # fig_bottom.suptitle("general", fontsize=10)
-
-    grid_top_left = fig_top_left.add_gridspec(ncols=2, nrows=2)
-    _plot_text_file    (section, section_metadata, fig_top_left.add_subplot(grid_top_left[0, 0]))
-    _plot_text_group   (section, section_metadata, fig_top_left.add_subplot(grid_top_left[1, 0]))
-    _plot_text_overview(section, section_metadata, fig_top_left.add_subplot(grid_top_left[:, 1]))
-
-    grid_bottom = fig_bottom.add_gridspec(ncols=3, nrows=3)
-    plot_energy_hist (section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[0, 0]))
-    plot_energy_line (section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[0, 1:]))
-    plot_lattice_hist(section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[1, 0]))
-    plot_lattice_line(section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[1, 1:]))
-    plot_stress_hist (section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[2, 0]))
-    plot_stress_line (section_metadata["misc"], fig_bottom.add_subplot(grid_bottom[2, 1:]))
-
-    grid_top_right = fig_top_right.add_gridspec(ncols=1, nrows=1)
-    if "img" in section_metadata:
-        plot_image(section_metadata["img"]["min"]["front"], "min energy configuration", fig_top_right.add_subplot(grid_top_right[0, 0]))
+    _plot_text_file    (section, section_metadata, fig.add_subplot(grid[0, 0]))
+    _plot_text_group   (section, section_metadata, fig.add_subplot(grid[1, 0]))
+    _plot_text_overview(section, section_metadata, fig.add_subplot(grid[:, 1]))
 
 
 def _plot_text_group(section: MLABSection, section_metadata: dict, ax: Axes):
@@ -136,8 +117,8 @@ def _plot_table(title: str, text: list[list[str]], ax: Axes):
     )
 
     tab.auto_set_font_size(False)
-    tab.set_fontsize(6)
-    tab.scale(1, 1)
+    # tab.set_fontsize(6)
+    # tab.scale(1, 1)
 
 
 def _make_image_page(section: MLABSection, section_metadata: dict, fig: Figure):

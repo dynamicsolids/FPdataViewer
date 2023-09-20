@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from mlab.mlab import MLABConfiguration, MLABSection
+from fpdataviewer.mlab.mlab import MLABConfiguration, MLABSection
 
 
 def calculate_misc(section: MLABSection) -> pd.DataFrame:

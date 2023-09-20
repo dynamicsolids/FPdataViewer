@@ -2,10 +2,10 @@ import argparse
 import sys
 from pathlib import Path
 
-import src.convert
-import src.inspect
-import src.plot
-import src.validate
+from fpdataviewer.cli.main_convert import convert
+from fpdataviewer.cli.main_inspect import inspect
+from fpdataviewer.cli.main_plot import plot
+from fpdataviewer.cli.main_validate import validate
 
 
 def register_args() -> argparse.ArgumentParser:
@@ -15,22 +15,22 @@ def register_args() -> argparse.ArgumentParser:
     plot_parser = subparsers.add_parser("plot")
     register_args_plot(plot_parser)
     register_args_io(plot_parser, True, True)
-    plot_parser.set_defaults(exec=src.plot.exec)
+    plot_parser.set_defaults(exec=plot)
 
     inspect_parser = subparsers.add_parser("inspect")
     register_args_inspect(inspect_parser)
     register_args_io(inspect_parser, True, False)
-    inspect_parser.set_defaults(exec=src.inspect.exec)
+    inspect_parser.set_defaults(exec=inspect)
 
     convert_parser = subparsers.add_parser("convert")
     register_args_convert(convert_parser)
     register_args_io(convert_parser, True, True)
-    convert_parser.set_defaults(exec=src.convert.exec)
+    convert_parser.set_defaults(exec=convert)
 
     validate_parser = subparsers.add_parser("validate")
     register_args_validate(validate_parser)
     register_args_io(validate_parser, True, False)
-    validate_parser.set_defaults(exec=src.validate.exec)
+    validate_parser.set_defaults(exec=validate)
 
     return parser
 
@@ -48,7 +48,7 @@ def register_args_plot(parser: argparse.ArgumentParser):
         "--interactive",
         "-x",
         action="store_true",
-        help="",
+        help="launches a matplotlib window instead of saving to a file",
         dest="interactive",
     )
     parser.set_defaults(interactive=False)
@@ -80,6 +80,57 @@ def register_args_plot(parser: argparse.ArgumentParser):
         dest="strict",
     )
     parser.set_defaults(strict=False)
+
+
+def register_args_inspect(parser: argparse.ArgumentParser):
+    parser.add_argument(
+        "--strict",
+        "-t",
+        action="store_true",
+        help="validates file before running calculations",
+        dest="strict",
+    )
+    parser.set_defaults(strict=False)
+
+
+def register_args_convert(parser: argparse.ArgumentParser):
+    parser.add_argument(
+        "--from",
+        "-f",
+        default=None,
+        help="source format",
+        dest="from_format",
+    )
+
+    parser.add_argument(
+        "--to",
+        "-t",
+        default=None,
+        help="target format",
+        dest="to_format",
+    )
+
+    parser.add_argument(
+        "--index",
+        "-x",
+        default=None,
+        help="indices to consider from source, formatted like slices",
+        dest="index",
+    )
+    parser.set_defaults(strict=False)
+
+    parser.add_argument(
+        "--append",
+        "-a",
+        action="store_true",
+        help="append to target instead of overwriting",
+        dest="append",
+    )
+    parser.set_defaults(strict=False)
+
+
+def register_args_validate(parser: argparse.ArgumentParser):
+    pass
 
 
 def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_output: bool):
@@ -115,17 +166,15 @@ def find_input_file(path: str | None) -> Path:
     else:
         path = Path(path)
 
-    if path.is_file():
-        return path
-    elif path.is_dir():
-        look_for = ["ML_AB", "ML_ABN", "ML_ABCAR"]
-
-        for name in look_for:
+    if path.is_dir():
+        for name in ["ML_AB", "ML_ABN", "ML_ABCAR"]:
             new_path = path / name
             if new_path.is_file():
                 return new_path
 
         raise FileNotFoundError("could not find a valid input file")
+    else:
+        return path
 
 
 def find_output_file(input_path: Path, output_path: str | None) -> Path:
@@ -137,10 +186,10 @@ def find_output_file(input_path: Path, output_path: str | None) -> Path:
 
 def resolve_io(args):
     if args.has_input:
-        args.input_file = find_input_file(args.input_file or args.pos_args[0])
+        args.input_file = find_input_file(args.input_file)
 
     if args.has_output:
-        args.output_file = find_output_file(args.input_file, args.output_file or args.pos_args[1])
+        args.output_file = find_output_file(args.input_file, args.output_file)
 
         if args.output_file.exists():
             answer = input(f"{args.output_file} already exists and will be overwritten. are you sure you want to continue? [Y/n] ")
@@ -149,9 +198,7 @@ def resolve_io(args):
                 sys.exit(0)
 
 
-
-if __name__ == "__main__":
-    # Parse arguments
+def main():
     parser = register_args()
     args = parser.parse_args()
 
