@@ -1,10 +1,15 @@
 import numpy as np
 
-from fpdataviewer.cli.config import get_config
+from fpdataviewer.cli.config import get_config, set_config
 from fpdataviewer.mlab.mlab import MLABSection
 
+_original_config = None
+_temporary_config = None
 
 def gather_metadata(args, section: MLABSection) -> dict:
+    global _original_config
+    global _temporary_config
+
     section_metadata = {}
 
     min_offset = float("inf")
@@ -21,7 +26,12 @@ def gather_metadata(args, section: MLABSection) -> dict:
     min_offset /= 2
 
     section_metadata["non_periodic_radius"] = min_offset
-    find_and_replace(get_config(), "auto", 1.5 * min_offset)
+
+    if _original_config is None:
+        _original_config = get_config()
+    _temporary_config = _original_config.copy()
+    find_and_replace(_temporary_config, "auto", 2. * min_offset)
+    set_config(_temporary_config)
 
     from fpdataviewer.cli.analysis.misc import calculate_misc
     section_metadata["misc"] = calculate_misc(section)
@@ -41,7 +51,6 @@ def gather_metadata(args, section: MLABSection) -> dict:
     return section_metadata
 
 
-# TODO: Does this work with multiple sections? Maybe integrate with "structures" fields
 def find_and_replace(config: dict, old_value: str, new_value: str):
     for key, value in config.items():
         if isinstance(value, dict):

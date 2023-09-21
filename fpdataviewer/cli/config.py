@@ -26,20 +26,6 @@ default_config = {
 _config: dict | None = None
 
 
-# TODO: implement everywhere
-def get_config_item(*path: str):
-    config = get_config()
-
-    for item in path:
-        if item in config:
-            config = config[item]
-        else:
-            full_path = ".".join(path)
-            raise ConfigError(f"could not find expected parameter \"{full_path}\" in config")
-
-    return config
-
-
 def get_config() -> dict:
     global _config
 
@@ -52,8 +38,8 @@ def get_config() -> dict:
 def set_config(config: dict):
     global _config
 
-    if _config is not None:
-        raise ConfigError("config has already been loaded")
+    # if _config is not None:
+    #     raise ConfigError("config has already been loaded")
 
     _config = config
 

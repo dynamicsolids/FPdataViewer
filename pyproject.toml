@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -7,7 +7,7 @@ packages = ["fpdataviewer", "fpdataviewer.mlab", "fpdataviewer.cli", "fpdataview
 
 [project]
 name = "fpdataviewer"
-version = "0.0.1"
+version = "0.0.3"
 authors = [
     { name="Thijmen Kuipers", email="t.p.w.kuipers@student.utwente.nl" },
 ]
