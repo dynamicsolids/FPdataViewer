@@ -1,15 +1,15 @@
-# ML AB Viewer
+# FPdataViewer
 
-Reads [VASP MLFF](https://www.vasp.at/wiki/index.php/Machine_learning_force_field_calculations:_Basics) [input and output files](https://www.vasp.at/wiki/index.php/ML_AB) (named ML_AB and ML_ABN) 
-and graphs various statistics to provide a small overview of the file's content using matplotlib. 
+Reads first-principle atomic structures files and graphs various statistics to provide a small overview of the file's content using matplotlib. 
+Built around [VASP MLFF](https://www.vasp.at/wiki/index.php/Machine_learning_force_field_calculations:_Basics) [input and output files](https://www.vasp.at/wiki/index.php/ML_AB): ML_AB and ML_ABN.
 Either saves to a PDF file (`plot`) or launches matplotlib (`plot --interactive`). 
 
 Also provides some tools for converting between file types using [ASE](https://wiki.fysik.dtu.dk/ase/) 
 (`convert`), repairing broken files (`validate`), and quickly inspecting the contents files (`inspect`). Some of these tools are also provided by the ASE CLI, and will become obsolete when the _vasp-mlab_ format is implemented).
 
-| ![rendered front page](images/image_a.png)                 | ![rendered image page](images/image_b.png)                |
-|------------------------------------------------------------|-----------------------------------------------------------|
-| ![rendered atom type page for bismuth](images/image_c.png) | ![rendered atom type page for oxygen](images/image_d.png) |
+| ![front page](images/image_a.png)                 | ![image page](images/image_b.png)                |
+|---------------------------------------------------|--------------------------------------------------|
+| ![atom type page for bismuth](images/image_c.png) | ![atom type page for oxygen](images/image_d.png) |
 
 ## Table of contents
 
@@ -26,6 +26,8 @@ Also provides some tools for converting between file types using [ASE](https://w
 
 ### pip
 
+The easiest method is to install through pip.
+
 ```shell
 pip install -i https://test.pypi.org/simple/ fpdataviewer
 ```
@@ -38,12 +40,6 @@ pip install -i https://test.pypi.org/simple/ fpdataviewer
 ```shell
 # NOT CURRENTLY AVAILABLE
 ```
-
-[//]: # (conda create --name FPdataviewer python=3.11)
-[//]: # (conda activate FPdataviewer )
-[//]: # (conda install numpy pandas matplotlib seaborn numba dscribe scikit-learn ovito pyside6 pillow)
-[//]: # ()
-[//]: # (python mlab.py examples/ML_AB_Li3N --mode plt)
 
 ## Requirements
 
@@ -58,6 +54,10 @@ Not all dependencies are required when `--skip` is used.
 
 ## Usage
 
+### fpdataviewer plot
+
+Main functionality. Graphs statistics into pdf or onto screen (with `--interactive``).
+
 ```shell
 # Basic PDF generation
 fpdataviewer plot -i examples/ML_AB -o overview.pdf
@@ -71,10 +71,6 @@ fpdataviewer plot -i examples/ML_AB --config mlab_viewer.json
 # Skip radial distribution functions and image rendering, rasterize remaining graphs
 fpdataviewer plot --rasterize --skip rdf img
 ```
-
-### fpdataviewer plot
-
-Plots stuff
 
 <details>
 <summary>Options</summary>
@@ -100,39 +96,55 @@ Disables vector image format for plots and uses raster images. This can greatly 
 
 ### fpdataviewer inspect
 
-Inspects stuff
+Summarized file contents to console, no analysis. Recommened to use before plotting large files.
+
+```shell
+fpdataviewer inspect -i examples/ML_AB
+```
 
 <details>
 <summary>Options</summary>
 
-##### `--interactive`, `-x`
-Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
+##### `--strict`, `-t`
+Validates the input file. See `fpdataviewer validate`.
 
 </details>
 
 ### fpdataviewer convert
 
-Plots stuff
+Converts between file types using ASE. Useful for reading ML_AB files, otherwise recommended to use ASE CLI directly instead.
+
+```shell
+# Convert first structure in ML_AB file to a POSCAR file
+fpdataviewer convert -i examples/ML_AB -o examples/POSCAR -f vasp-mlab -t vasp -x 0
+```
 
 <details>
 <summary>Options</summary>
 
-##### `--interactive`, `-x`
-Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
+##### `--from`, `-f`
+Source format; see [ASE]() documentation for options. Use `vasp-mlab` for ML_AB format.
+
+##### `--to`, `-t`
+Target format; see [ASE]() documentation for options.
+
+##### `--index`, `-x`
+Selects range of structures from source, in Python slice format (e.g. `0` for the first structure, `-1` for the last, `:4` for the first four, etc.).
+
+##### `--append`, `-a`
+Appends to end of the target file instead of overwriting.
 
 </details>
 
 ### fpdataviewer validate
 
-Plots stuff
+Validates the input file and reports problems. 
+Some formats (like VASP's ML_AB) contain redundant or possibly self-contradictory information that can cause parsers to fail unpredictably. 
+This option will check the input file against specifications to minimize these errors and help the user repair the broken file.
 
-<details>
-<summary>Options</summary>
-
-##### `--interactive`, `-x`
-Save to a PDF file (`pdf`, default), show interactive plots (`plt`), or only print to console (`none`).
-
-</details>
+```shell
+fpdataviewer validate -i examples/ML_AB
+```
 
 ## Config file
 
