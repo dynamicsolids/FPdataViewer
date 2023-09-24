@@ -6,7 +6,7 @@ from fpdataviewer.mlab.mlab import MLAB, MLABSection
 from fpdataviewer.mlab.parsing import split
 
 
-def run(args, mlab: MLAB):
+def run(args, mlab: MLAB) -> None:
     sections = split(mlab)
 
     # plt.style.use("ggplot")
@@ -52,7 +52,7 @@ def run(args, mlab: MLAB):
         plt.show()
 
 
-def _make_histogram_page(section: MLABSection, section_metadata: dict, fig: Figure):
+def _make_histogram_page(section: MLABSection, section_metadata: dict, fig: Figure) -> None:
     grid = fig.add_gridspec(ncols=3, nrows=3)
 
     plot_energy_hist (section_metadata["misc"], fig.add_subplot(grid[0, 0]))
@@ -63,7 +63,7 @@ def _make_histogram_page(section: MLABSection, section_metadata: dict, fig: Figu
     plot_stress_line (section_metadata["misc"], fig.add_subplot(grid[2, 1:]))
 
 
-def _make_overview_page(section: MLABSection, section_metadata: dict, fig: Figure):
+def _make_overview_page(section: MLABSection, section_metadata: dict, fig: Figure) -> None:
     grid = fig.add_gridspec(ncols=2, nrows=2)
 
     _plot_text_file    (section, section_metadata, fig.add_subplot(grid[0, 0]))
@@ -71,7 +71,7 @@ def _make_overview_page(section: MLABSection, section_metadata: dict, fig: Figur
     _plot_text_overview(section, section_metadata, fig.add_subplot(grid[:, 1]))
 
 
-def _plot_text_group(section: MLABSection, section_metadata: dict, ax: Axes):
+def _plot_text_group(section: MLABSection, section_metadata: dict, ax: Axes) -> None:
     atom_repr = ", ".join([f"{name} ({number})" for name, number in section.header.number_of_atoms_per_type])
 
     _plot_table("current structure group", [
@@ -83,7 +83,7 @@ def _plot_text_group(section: MLABSection, section_metadata: dict, ax: Axes):
     ], ax)
 
 
-def _plot_text_file(section: MLABSection, section_metadata: dict, ax: Axes):
+def _plot_text_file(section: MLABSection, section_metadata: dict, ax: Axes) -> None:
     _plot_table("file", [
         ["name", section_metadata["file_name"], ""],
         ["structure groups", section_metadata["total_groups"], ""],
@@ -91,7 +91,7 @@ def _plot_text_file(section: MLABSection, section_metadata: dict, ax: Axes):
     ], ax)
 
 
-def _plot_text_overview(section: MLABSection, section_metadata: dict, ax: Axes):
+def _plot_text_overview(section: MLABSection, section_metadata: dict, ax: Axes) -> None:
     misc = section_metadata['misc']
 
     _plot_table("overview", [
@@ -104,7 +104,7 @@ def _plot_text_overview(section: MLABSection, section_metadata: dict, ax: Axes):
     ], ax)
 
 
-def _plot_table(title: str, text: list[list[str]], ax: Axes):
+def _plot_table(title: str, text: list[list[str]], ax: Axes) -> None:
     ax.set_title(title, loc="left")
 
     ax.set_axis_off()
@@ -121,7 +121,7 @@ def _plot_table(title: str, text: list[list[str]], ax: Axes):
     # tab.scale(1, 1)
 
 
-def _make_image_page(section: MLABSection, section_metadata: dict, fig: Figure):
+def _make_image_page(section: MLABSection, section_metadata: dict, fig: Figure) -> None:
     grid = fig.add_gridspec(ncols=3, nrows=2)
 
     fig_top = fig.add_subfigure(grid[0, :], in_layout=True)
@@ -147,7 +147,7 @@ def _make_image_page(section: MLABSection, section_metadata: dict, fig: Figure):
         plot_image(section_metadata["img"]["max"]["top"], "top", fig_bottom.add_subplot(grid_bottom[0, 2]))
 
 
-def _make_type_page(section: MLABSection, section_metadata: dict, fig: Figure, type: str):
+def _make_type_page(section: MLABSection, section_metadata: dict, fig: Figure, type: str) -> None:
     grid = fig.add_gridspec(ncols=3, nrows=2)
 
     fig_top = fig.add_subfigure(grid[0, :], in_layout=True)

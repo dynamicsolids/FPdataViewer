@@ -1,6 +1,7 @@
 import argparse
 import sys
 from pathlib import Path
+from typing import Optional
 
 from fpdataviewer.cli.main_convert import convert
 from fpdataviewer.cli.main_inspect import inspect
@@ -35,7 +36,7 @@ def register_args() -> argparse.ArgumentParser:
     return parser
 
 
-def register_args_plot(parser: argparse.ArgumentParser):
+def register_args_plot(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--config",
         "-c",
@@ -82,7 +83,7 @@ def register_args_plot(parser: argparse.ArgumentParser):
     parser.set_defaults(strict=False)
 
 
-def register_args_inspect(parser: argparse.ArgumentParser):
+def register_args_inspect(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--strict",
         "-t",
@@ -93,7 +94,7 @@ def register_args_inspect(parser: argparse.ArgumentParser):
     parser.set_defaults(strict=False)
 
 
-def register_args_convert(parser: argparse.ArgumentParser):
+def register_args_convert(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--from",
         "-f",
@@ -129,11 +130,11 @@ def register_args_convert(parser: argparse.ArgumentParser):
     parser.set_defaults(strict=False)
 
 
-def register_args_validate(parser: argparse.ArgumentParser):
+def register_args_validate(parser: argparse.ArgumentParser) -> None:
     pass
 
 
-def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_output: bool):
+def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_output: bool) -> None:
     if has_input:
         parser.add_argument(
             "--input",
@@ -160,7 +161,7 @@ def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_outpu
     parser.set_defaults(has_output=has_output)
 
 
-def find_input_file(path: str | None) -> Path:
+def find_input_file(path: Optional[str]) -> Path:
     if path is None:
         path = Path.cwd()
     else:
@@ -177,14 +178,14 @@ def find_input_file(path: str | None) -> Path:
         return path
 
 
-def find_output_file(input_path: Path, output_path: str | None) -> Path:
+def find_output_file(input_path: Path, output_path: Optional[str]) -> Path:
     if output_path is None:
         return input_path.with_suffix(".out")
     else:
         return Path(output_path)
 
 
-def resolve_io(args):
+def resolve_io(args) -> None:
     if args.has_input:
         args.input_file = find_input_file(args.input_file)
 
@@ -198,7 +199,7 @@ def resolve_io(args):
                 sys.exit(0)
 
 
-def main():
+def main() -> None:
     parser = register_args()
     args = parser.parse_args()
 

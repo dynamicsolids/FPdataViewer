@@ -1,7 +1,7 @@
 from fpdataviewer.mlab import parsing, validation
 
 
-def inspect(args):
+def inspect(args) -> None:
     # Load MLAB file
     with args.input_file.open(mode="rt") as file:
         mlab = parsing.load(file)

@@ -95,7 +95,7 @@ def _calculate_rdf_bins(positions,
                         rmin: float,
                         rmax: float,
                         number_bins: int,
-                        counts):
+                        counts) -> None:
     offset_matrix = np.array([[x, y, z]
                               for x in [-1, 0, 1]
                               for y in [-1, 0, 1]

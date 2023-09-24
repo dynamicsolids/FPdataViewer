@@ -4,7 +4,7 @@ from fpdataviewer.cli.config import set_config, default_config
 from fpdataviewer.mlab import parsing, validation
 
 
-def plot(args):
+def plot(args) -> None:
     # Load config
     config = default_config
 

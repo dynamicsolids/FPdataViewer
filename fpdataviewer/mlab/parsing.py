@@ -1,6 +1,6 @@
 import re
 from collections import defaultdict
-from typing import TextIO
+from typing import TextIO, Optional
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -30,7 +30,7 @@ class MLABReader:
 
         self.keep_buffer = False
 
-    def advance(self):
+    def advance(self) -> None:
         if self.keep_buffer:
             self.keep_buffer = False
             return
@@ -150,7 +150,7 @@ class MLABReader:
         except ValueError:
             raise self.error("expected list of string-integer tuples")
 
-    def consume_header(self, expected_header: str):
+    def consume_header(self, expected_header: str) -> None:
         self.advance()
 
         if len(self.buffer) != 1 or self.buffer[0] != expected_header:
@@ -178,7 +178,7 @@ class MLABReader:
         else:
             raise self.error("expected single line")
 
-    def peek_regex(self, pattern: re.Pattern[str]) -> re.Match | None:
+    def peek_regex(self, pattern: re.Pattern[str]) -> Optional[re.Match]:
         self.advance()
 
         if len(self.buffer) == 1:

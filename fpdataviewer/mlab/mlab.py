@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from itertools import chain
+from typing import Optional
 
 from numpy.typing import ArrayLike
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class StressTensor:
     xx: float
     yy: float
@@ -13,17 +14,17 @@ class StressTensor:
     yz: float
     zx: float
 
-    def get_mechanical_pressure(self):
+    def get_mechanical_pressure(self) -> float:
         return -(self.xx + self.yy + self.zz) / 3
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class MLABBasisSet:
     name: str
     indices: ArrayLike
 
 
-@dataclass(frozen=True, slots=True, kw_only=True, unsafe_hash=True)
+@dataclass(frozen=True)
 class MLABConfigurationHeader:
     name: str
     number_of_atom_types: int
@@ -35,19 +36,19 @@ class MLABConfigurationHeader:
         return tuple(chain.from_iterable(table))
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(frozen=True)
 class MLABConfiguration:
     index: int
 
     header: MLABConfigurationHeader
 
-    ctifor: float | None
+    ctifor: Optional[float]
     lattice_vectors: ArrayLike
     positions: ArrayLike
     energy: float
     forces: ArrayLike
     stress: StressTensor
-    charges: ArrayLike | None
+    charges: Optional[ArrayLike]
 
     @property
     def name(self) -> str:
@@ -69,7 +70,7 @@ class MLABConfiguration:
         return self.header.generate_type_lookup()
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(frozen=True)
 class MLAB:
     number_of_configurations: int
     max_number_of_atom_types: int
@@ -86,7 +87,7 @@ class MLAB:
     configurations: list[MLABConfiguration]
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(frozen=True)
 class MLABSection:
     source: MLAB
 

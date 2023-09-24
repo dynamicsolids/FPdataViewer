@@ -23,7 +23,7 @@ default_config = {
     }
 }
 
-_config: dict | None = None
+_config = None
 
 
 def get_config() -> dict:
@@ -35,7 +35,7 @@ def get_config() -> dict:
     return _config
 
 
-def set_config(config: dict):
+def set_config(config: dict) -> None:
     global _config
 
     # if _config is not None:

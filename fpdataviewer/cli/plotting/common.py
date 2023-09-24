@@ -1,7 +1,9 @@
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from PIL import Image
+from PIL.Image import Image as PILImage
 from matplotlib import pyplot as plt, cm
 from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap
@@ -15,7 +17,7 @@ _black = "black"
 _white = "white"
 
 
-def plot_energy_hist(misc: pd.DataFrame, ax: Axes):
+def plot_energy_hist(misc: pd.DataFrame, ax: Axes) -> None:
     ax.hist(misc["energy"],
             bins=get_config()["global"]["bins"],
             color=_blue)
@@ -26,7 +28,7 @@ def plot_energy_hist(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_energy_line(misc: pd.DataFrame, ax: Axes):
+def plot_energy_line(misc: pd.DataFrame, ax: Axes) -> None:
     ax.plot(misc["energy"],
             color=_blue)
     ax.set_xlabel("structure")
@@ -36,7 +38,7 @@ def plot_energy_line(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_stress_hist(misc: pd.DataFrame, ax: Axes):
+def plot_stress_hist(misc: pd.DataFrame, ax: Axes) -> None:
     ax.hist(misc["pressure"],
             bins=get_config()["global"]["bins"],
             color=_blue)
@@ -47,7 +49,7 @@ def plot_stress_hist(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_stress_line(misc: pd.DataFrame, ax: Axes):
+def plot_stress_line(misc: pd.DataFrame, ax: Axes) -> None:
     ax.plot(misc["pressure"],
             color=_blue)
     ax.set_xlabel("structure")
@@ -57,7 +59,7 @@ def plot_stress_line(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_lattice_hist(misc: pd.DataFrame, ax: Axes):
+def plot_lattice_hist(misc: pd.DataFrame, ax: Axes) -> None:
     bins = np.histogram_bin_edges(np.hstack((misc["lattice_a"], misc["lattice_b"], misc["lattice_c"])),
                                   bins=get_config()["global"]["bins"])
 
@@ -72,7 +74,7 @@ def plot_lattice_hist(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_lattice_line(misc: pd.DataFrame, ax: Axes):
+def plot_lattice_line(misc: pd.DataFrame, ax: Axes) -> None:
     ax.plot(misc["lattice_a"], label="a", color=_red)
     ax.plot(misc["lattice_b"], label="b", color=_blue)
     ax.plot(misc["lattice_c"], label="c", color=_green)
@@ -84,7 +86,7 @@ def plot_lattice_line(misc: pd.DataFrame, ax: Axes):
     ax.set_axisbelow(True)
 
 
-def plot_image(image: Image, label: str, ax: Axes):
+def plot_image(image: Optional[PILImage], label: str, ax: Axes) -> None:
     if image is not None:
         ax.imshow(image)
 
@@ -95,7 +97,7 @@ def plot_image(image: Image, label: str, ax: Axes):
     ax.spines[["right", "top", "left", "bottom"]].set_visible(False)
 
 
-def plot_rdf(rdf: dict | None, center_type: str | None, ax: Axes):
+def plot_rdf(rdf: Optional[dict], center_type: Optional[str], ax: Axes) -> None:
     for (atom1, atom2), (counts, bins) in rdf.items():
         # sns.histplot(weights=counts, bins=bins, label=name)
         if center_type == atom1:
@@ -115,7 +117,7 @@ def plot_rdf(rdf: dict | None, center_type: str | None, ax: Axes):
     ax.legend()
 
 
-def plot_descriptors_scatter_grouping(desc: pd.DataFrame, ax: Axes):
+def plot_descriptors_scatter_grouping(desc: pd.DataFrame, ax: Axes) -> None:
     x_min = desc["pc_1"].min()
     x_max = desc["pc_1"].max()
     y_min = desc["pc_2"].min()
@@ -134,7 +136,7 @@ def plot_descriptors_scatter_grouping(desc: pd.DataFrame, ax: Axes):
     ax.legend()
 
 
-def plot_descriptors_density(desc: pd.DataFrame, ax: Axes):
+def plot_descriptors_density(desc: pd.DataFrame, ax: Axes) -> None:
     x_min = desc["pc_1"].min()
     x_max = desc["pc_1"].max()
     y_min = desc["pc_2"].min()
@@ -155,7 +157,7 @@ def plot_descriptors_density(desc: pd.DataFrame, ax: Axes):
     # plt.colorbar(res, label="count", ax=ax)
 
 
-def plot_descriptors_scatter_energy(desc: pd.DataFrame, ax: Axes):
+def plot_descriptors_scatter_energy(desc: pd.DataFrame, ax: Axes) -> None:
     x_min = desc["pc_1"].min()
     x_max = desc["pc_1"].max()
     y_min = desc["pc_2"].min()
@@ -187,7 +189,7 @@ def plot_descriptors_scatter_energy(desc: pd.DataFrame, ax: Axes):
     plt.colorbar(res, label="energy [eV]", ax=ax)
 
 
-# def plot_force_hist(section: MLABSection, type: str, ax: Axes):
+# def plot_force_hist(section: MLABSection, type: str, ax: Axes) -> None:
 #     type_indices = [i for (i, t) in enumerate(section.generate_type_lookup()) if t == type]
 #
 #     forces = np.array([abs(force) for conf in section.configurations for force in conf.forces[type_indices, :]])
@@ -207,7 +209,7 @@ def plot_descriptors_scatter_energy(desc: pd.DataFrame, ax: Axes):
 #     ax.set_axisbelow(True)
 #
 #
-# def plot_force_density(section: MLABSection, type: str, component: int, ax: Axes):
+# def plot_force_density(section: MLABSection, type: str, component: int, ax: Axes) -> None:
 #     y_max = max([abs(force) for conf in section.configurations for force in conf.forces.flatten()])
 #
 #     type_indices = [i for (i, t) in enumerate(section.generate_type_lookup()) if t == type]

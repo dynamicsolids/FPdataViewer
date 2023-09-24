@@ -12,11 +12,11 @@ def _error(message: str) -> ValidationException:
     return ValidationException(f"problem validating file: {message}")
 
 
-def _assert_eq(reported: Any, expected: Any, message: str):
+def _assert_eq(reported: Any, expected: Any, message: str) -> None:
     if reported != expected:
         raise _error(message.format(reported, expected))
 
-def _validate_global(mlab: MLAB):
+def _validate_global(mlab: MLAB) -> None:
     # Numbers
     _assert_eq(mlab.number_of_configurations,
                len(mlab.configurations),
@@ -57,7 +57,7 @@ def _validate_global(mlab: MLAB):
                "\'The numbers of basis sets per atom type\' contains {0} items but {1} types were named")
 
 
-def _validate_configurations(mlab: MLAB):
+def _validate_configurations(mlab: MLAB) -> None:
     for i, conf in enumerate(mlab.configurations):
         if conf.index != i + 1:
             raise _error(f"configurations are not indexed sequentially ({i + 1}'s configuration has index {conf.index})")
@@ -92,7 +92,7 @@ def _validate_configurations(mlab: MLAB):
                        f"in configuration {conf.index}, \'Charges (e)\' has shape {0} but expected {1}")
 
 
-def _validate_basis_sets(mlab: MLAB):
+def _validate_basis_sets(mlab: MLAB) -> None:
     _assert_eq(len(mlab.basis_sets),
                len({basis_set.name for basis_set in mlab.basis_sets}),
                "duplicate basis sets were found")
@@ -121,7 +121,7 @@ def _validate_basis_sets(mlab: MLAB):
                 raise _error(f"basis set {basis_set.name} references atom {atom_index}, which is listed as {actual_atom}")
 
 
-def validate(mlab: MLAB):
+def validate(mlab: MLAB) -> None:
     _validate_global(mlab)
     _validate_configurations(mlab)
     _validate_basis_sets(mlab)

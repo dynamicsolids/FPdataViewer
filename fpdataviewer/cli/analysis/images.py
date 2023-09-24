@@ -3,6 +3,7 @@ from io import BytesIO
 from operator import attrgetter
 
 from PIL import Image
+from PIL.Image import Image as PILImage
 
 from fpdataviewer.cli.config import get_config
 
@@ -18,7 +19,7 @@ from ovito.pipeline import Pipeline, StaticSource
 from ovito.vis import Viewport, TachyonRenderer, CoordinateTripodOverlay
 
 
-def render_images(section: MLABSection) -> dict[str, dict[str, QImage]]:
+def render_images(section: MLABSection) -> dict[str, dict[str, PILImage]]:
     min_energy_conf = min(section.configurations, key=attrgetter("energy"))
     max_energy_conf = max(section.configurations, key=attrgetter("energy"))
 
@@ -35,7 +36,7 @@ def render_images(section: MLABSection) -> dict[str, dict[str, QImage]]:
     }
 
 
-def _render_images_configuration(configuration: MLABConfiguration, size: tuple[int, int]) -> dict[str, Image]:
+def _render_images_configuration(configuration: MLABConfiguration, size: tuple[int, int]) -> dict[str, PILImage]:
     data = ovito_adapter.from_configuration(configuration)
 
     pipeline = Pipeline(source=StaticSource(data=data))
@@ -67,7 +68,7 @@ def _render_images_configuration(configuration: MLABConfiguration, size: tuple[i
     return images
 
 
-def _qt_to_pil(image: QImage) -> Image:
+def _qt_to_pil(image: QImage) -> PILImage:
     buffer = QBuffer()
     buffer.open(QBuffer.ReadWrite)
     image.save(buffer, "png")

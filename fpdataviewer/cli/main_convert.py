@@ -3,7 +3,7 @@ import ase.io
 from fpdataviewer.mlab import ase_adapter, parsing
 
 
-def convert(args):
+def convert(args) -> None:
     if args.from_format == "vasp-mlab":
         with args.input_file.open(mode="rt") as file:
             mlab = parsing.load(file)

@@ -51,7 +51,7 @@ def gather_metadata(args, section: MLABSection) -> dict:
     return section_metadata
 
 
-def find_and_replace(config: dict, old_value: str, new_value: str):
+def find_and_replace(config: dict, old_value: str, new_value: str) -> None:
     for key, value in config.items():
         if isinstance(value, dict):
             find_and_replace(value, old_value, new_value)
