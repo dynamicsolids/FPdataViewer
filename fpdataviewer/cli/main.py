@@ -10,25 +10,25 @@ from fpdataviewer.cli.main_validate import validate
 
 
 def register_args() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="reads ML_AB-like files and displays various statistics")
-    subparsers = parser.add_subparsers(help="sub-command help")
+    parser = argparse.ArgumentParser(description="reads first-principles molecular simulation data and graphs various statistics")
+    subparsers = parser.add_subparsers()
 
-    plot_parser = subparsers.add_parser("plot")
+    plot_parser = subparsers.add_parser("plot", help="graphs statistics to screen or PDF")
     register_args_plot(plot_parser)
     register_args_io(plot_parser, True, True)
     plot_parser.set_defaults(exec=plot)
 
-    inspect_parser = subparsers.add_parser("inspect")
+    inspect_parser = subparsers.add_parser("inspect", help="summarizes file contents without analysis")
     register_args_inspect(inspect_parser)
     register_args_io(inspect_parser, True, False)
     inspect_parser.set_defaults(exec=inspect)
 
-    convert_parser = subparsers.add_parser("convert")
+    convert_parser = subparsers.add_parser("convert", help="converts between file types")
     register_args_convert(convert_parser)
     register_args_io(convert_parser, True, True)
     convert_parser.set_defaults(exec=convert)
 
-    validate_parser = subparsers.add_parser("validate")
+    validate_parser = subparsers.add_parser("validate", help="checks for correct file type formatting")
     register_args_validate(validate_parser)
     register_args_io(validate_parser, True, False)
     validate_parser.set_defaults(exec=validate)
@@ -99,7 +99,7 @@ def register_args_convert(parser: argparse.ArgumentParser) -> None:
         "--from",
         "-f",
         default=None,
-        help="source format",
+        help="source format, see ASE (Atomic Simulation Environment) IO formats or use vasp-mlab for VASP MLFF files",
         dest="from_format",
     )
 
@@ -107,7 +107,7 @@ def register_args_convert(parser: argparse.ArgumentParser) -> None:
         "--to",
         "-t",
         default=None,
-        help="target format",
+        help="target format, see ASE (Atomic Simulation Environment) IO formats",
         dest="to_format",
     )
 
@@ -115,7 +115,7 @@ def register_args_convert(parser: argparse.ArgumentParser) -> None:
         "--index",
         "-x",
         default=None,
-        help="indices to consider from source, formatted like slices",
+        help="indices to consider from source, formatted like a numpy slice",
         dest="index",
     )
     parser.set_defaults(strict=False)
@@ -141,7 +141,7 @@ def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_outpu
             "--in",
             "-i",
             default=None,
-            metavar="input file",
+            metavar="input",
             help="path to input file\nif directory is supplied, looks for file\ndefaults to working directory",
             dest="input_file",
         )
@@ -152,7 +152,7 @@ def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_outpu
             "--out",
             "-o",
             default=None,
-            metavar="output file",
+            metavar="output",
             help="path to output file",
             dest="output_file",
         )
@@ -162,20 +162,17 @@ def register_args_io(parser: argparse.ArgumentParser, has_input: bool, has_outpu
 
 
 def find_input_file(path: Optional[str]) -> Path:
-    if path is None:
-        path = Path.cwd()
-    else:
-        path = Path(path)
+    actual_path = Path.cwd() if path is None else Path(path)
 
-    if path.is_dir():
+    if actual_path.is_dir():
         for name in ["ML_AB", "ML_ABN", "ML_ABCAR"]:
-            new_path = path / name
+            new_path = actual_path / name
             if new_path.is_file():
                 return new_path
 
         raise FileNotFoundError("could not find a valid input file")
     else:
-        return path
+        return actual_path
 
 
 def find_output_file(input_path: Path, output_path: Optional[str]) -> Path:
