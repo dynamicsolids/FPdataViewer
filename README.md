@@ -29,7 +29,7 @@ Also provides some tools for converting between file types using [ASE](https://w
 The easiest method is to install through pip.
 
 ```shell
-pip install -i https://test.pypi.org/simple/ fpdataviewer
+pip install fpdataviewer
 ```
 
 > Installation through pip is the preferred method, but will pull in a number of large libraries used in analysis, some of which may not be supported on Windows. 
