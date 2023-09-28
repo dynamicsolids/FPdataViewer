@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 from fpdataviewer.cli.config import get_config, set_config

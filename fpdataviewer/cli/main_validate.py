@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fpdataviewer.mlab import parsing, validation
 
 

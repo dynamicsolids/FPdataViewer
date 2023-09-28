@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from matplotlib.figure import Figure
 
 from fpdataviewer.cli.analysis import analysis

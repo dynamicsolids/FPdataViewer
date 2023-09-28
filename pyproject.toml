@@ -7,7 +7,7 @@ packages = ["fpdataviewer", "fpdataviewer.mlab", "fpdataviewer.cli", "fpdataview
 
 [project]
 name = "fpdataviewer"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
     { name="Thijmen Kuipers", email="t.p.w.kuipers@student.utwente.nl" },
 ]
@@ -19,6 +19,7 @@ keywords = ["vasp", "descriptor", "machine learning", "atomic structure", "mater
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

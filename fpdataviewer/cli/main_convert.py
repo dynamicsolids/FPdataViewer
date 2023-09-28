@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ase.io
 
 from fpdataviewer.mlab import ase_adapter, parsing

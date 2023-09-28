@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.figure import Figure
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from fpdataviewer.cli.config import set_config, default_config

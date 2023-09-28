@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from ovito.data import DataCollection, ParticleType, SimulationCell
 
