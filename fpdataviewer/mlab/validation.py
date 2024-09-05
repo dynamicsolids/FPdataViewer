@@ -18,11 +18,15 @@ def _assert_eq(reported: Any, expected: Any, message: str) -> None:
     if reported != expected:
         raise _error(message.format(reported, expected))
 
+
 def _validate_global(mlab: MLAB) -> None:
     # Numbers
     _assert_eq(mlab.number_of_configurations,
                len(mlab.configurations),
                "\'The number of configurations\' is {0} but {1} were found")
+
+    if mlab.number_of_configurations == 0:
+        raise _error("file contains no configurations?")
 
     _assert_eq(mlab.max_number_of_atom_types,
                len(mlab.atom_types),

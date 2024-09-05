@@ -317,6 +317,82 @@ def load(stream: TextIO) -> MLAB:
                 configurations=configurations)
 
 
+def write(stream: TextIO, mlab: MLAB) -> None:
+    #from fortranformat import FortranRecordWriter
+    #format = FortranRecordWriter("(5X, 3EN24.13)")
+    #stream.write(format.write([np.sqrt(2), -np.sqrt(2), np.sqrt(5)]))
+
+    star_divider = "*" * 50
+    line_divider = "-" * 50
+    conf_divider = "=" * 50
+
+    def split_over_lines(l: list, n: int) -> str:
+        return "\n".join(" ".join(map(str, l[i:i+n])) for i in range(0, len(l), n))
+
+    def writelns(a: list) -> None:
+        stream.write("\n".join(map(str, a)))
+        stream.write("\n")
+
+    writelns([
+        "1.0 Version",
+        star_divider, "The number of configurations", line_divider,
+        mlab.number_of_configurations,
+        star_divider, "The maximum number of atom type", line_divider,
+        mlab.max_number_of_atom_types,
+        star_divider, "The atom types in the data file", line_divider,
+        split_over_lines(mlab.atom_types, 3),
+        star_divider, "The maximum number of atoms per system", line_divider,
+        mlab.max_number_of_atoms_per_system,
+        star_divider, "The maximum number of atoms per atom type", line_divider,
+        mlab.max_number_of_atoms_per_type,
+        star_divider, "Reference atomic energy (eV)", line_divider,
+        split_over_lines(mlab.reference_energies, 3),
+        star_divider, "Atomic mass", line_divider,
+        split_over_lines(mlab.atomic_masses, 3),
+        star_divider, "The numbers of basis sets per atom type", line_divider,
+        split_over_lines(mlab.numbers_of_basis_sets, 3),
+    ])
+
+    for set in mlab.basis_sets:
+        writelns([
+            star_divider, f"Basis set for {set.name}", line_divider,
+            "\n".join(f"{ic} {ia}" for ic, ia in set.indices),
+        ])
+
+    for conf in mlab.configurations:
+        writelns([
+            star_divider, f"Configuration num. {conf.index}",
+            conf_divider, "System name", line_divider,
+            conf.name,
+            conf_divider, "The number of atom types", line_divider,
+            conf.number_of_atom_types,
+            star_divider, "Atom types and atom numbers", line_divider,
+            "\n".join(f"{name} {number}" for name, number in conf.number_of_atoms_per_type),
+        ])
+
+        if conf.ctifor is not None:
+            writelns([
+                conf_divider, "CTIFOR", line_divider,
+                conf.ctifor,
+            ])
+
+        writelns([
+            conf_divider, "Primitive lattice vectors (ang.)", line_divider,
+            "\n".join(f"{x} {y} {z}" for x, y, z in conf.lattice_vectors),
+            conf_divider, "Atomic positions (ang.)", line_divider,
+            "\n".join(f"{x} {y} {z}" for x, y, z in conf.positions),
+            conf_divider, "Total energy (eV)", line_divider,
+            conf.energy,
+            conf_divider, "Forces (eV ang.^-1)", line_divider,
+            "\n".join(f"{x} {y} {z}" for x, y, z in conf.forces),
+            conf_divider, "Stress (kbar)",
+            line_divider, "XX YY ZZ", line_divider,
+            f"{conf.stress.xx} {conf.stress.yy} {conf.stress.zz}",
+            line_divider, "XY YZ ZX", line_divider,
+            f"{conf.stress.xy} {conf.stress.yz} {conf.stress.zx}",
+        ])
+
+
 def split(mlab: MLAB) -> list[MLABSection]:
     sections = defaultdict(list)
 

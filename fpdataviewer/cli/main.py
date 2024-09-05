@@ -9,6 +9,7 @@ from fpdataviewer.cli.main_convert import convert
 from fpdataviewer.cli.main_inspect import inspect
 from fpdataviewer.cli.main_plot import plot
 from fpdataviewer.cli.main_validate import validate
+from fpdataviewer.cli.main_filter import filter
 
 
 def register_args() -> argparse.ArgumentParser:
@@ -34,6 +35,11 @@ def register_args() -> argparse.ArgumentParser:
     register_args_validate(validate_parser)
     register_args_io(validate_parser, True, False)
     validate_parser.set_defaults(exec=validate)
+
+    filter_parser = subparsers.add_parser("filter", help="TODO")
+    register_args_filter(filter_parser)
+    register_args_io(filter_parser, True, True)
+    filter_parser.set_defaults(exec=filter)
 
     return parser
 
@@ -133,6 +139,10 @@ def register_args_convert(parser: argparse.ArgumentParser) -> None:
 
 
 def register_args_validate(parser: argparse.ArgumentParser) -> None:
+    pass
+
+
+def register_args_filter(parser: argparse.ArgumentParser) -> None:
     pass
 
 

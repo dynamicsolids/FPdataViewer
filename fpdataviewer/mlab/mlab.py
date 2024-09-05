@@ -7,7 +7,7 @@ from typing import Optional
 from numpy.typing import ArrayLike
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class StressTensor:
     xx: float
     yy: float
@@ -20,7 +20,7 @@ class StressTensor:
         return -(self.xx + self.yy + self.zz) / 3
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class MLABBasisSet:
     name: str
     indices: ArrayLike
@@ -38,7 +38,7 @@ class MLABConfigurationHeader:
         return tuple(chain.from_iterable(table))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class MLABConfiguration:
     index: int
 
@@ -72,7 +72,7 @@ class MLABConfiguration:
         return self.header.generate_type_lookup()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class MLAB:
     number_of_configurations: int
     max_number_of_atom_types: int
@@ -89,7 +89,7 @@ class MLAB:
     configurations: list[MLABConfiguration]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class MLABSection:
     source: MLAB
 
