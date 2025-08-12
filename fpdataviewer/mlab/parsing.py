@@ -366,6 +366,8 @@ def write(stream: TextIO, mlab: MLAB) -> None:
             conf.name,
             conf_divider, "The number of atom types", line_divider,
             conf.number_of_atom_types,
+            conf_divider, "The number of atoms", line_divider,
+            conf.number_of_atoms,
             star_divider, "Atom types and atom numbers", line_divider,
             "\n".join(f"{name} {number}" for name, number in conf.number_of_atoms_per_type),
         ])
